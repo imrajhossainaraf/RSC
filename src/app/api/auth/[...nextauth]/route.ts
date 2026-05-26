@@ -75,16 +75,14 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user, trigger, session }) {
       if (user) {
-        token.role = (user as any).role || "user";
-        token.id = user.id;
-      }
-      // Re-fetch role from DB if needed
-      if (token.email) {
         await dbConnect();
         const dbUser = await User.findOne({ email: token.email });
         if (dbUser) {
-          token.role = dbUser.role;
+          token.role = dbUser.role || "user";
           token.id = dbUser._id.toString();
+        } else {
+          token.role = (user as any).role || "user";
+          token.id = user.id;
         }
       }
       return token;

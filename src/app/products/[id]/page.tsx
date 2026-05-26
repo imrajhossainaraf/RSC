@@ -6,12 +6,14 @@ import styles from './page.module.css';
 
 export const revalidate = 60; // revalidate every 60 seconds
 
-export default async function ProductDetailPage({ params }: { params: { id: string } }) {
+export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await dbConnect();
+  
+  const { id } = await params;
   
   let product = null;
   try {
-    product = await Product.findById(params.id).lean();
+    product = await Product.findById(id).lean();
   } catch (e) {
     // Invalid ObjectId format
     return notFound();

@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
 import dbConnect from "@/lib/mongodb";
 import Order from "@/models/Order";
+import Product from "@/models/Product";
 import nodemailer from "nodemailer";
 
 export async function POST(req: Request) {
@@ -21,6 +22,27 @@ export async function POST(req: Request) {
     }
 
     await dbConnect();
+
+    // 1. Verify stock for all items first
+    const productsToUpdate = [];
+    for (const item of items) {
+      const product = await Product.findById(item.productId);
+      if (!product) {
+        return NextResponse.json({ message: `Product "${item.name}" not found.` }, { status: 404 });
+      }
+      if (product.stock < item.quantity) {
+        return NextResponse.json({ 
+          message: `Insufficient stock for "${product.name}". Only ${product.stock} left in stock.` 
+        }, { status: 400 });
+      }
+      productsToUpdate.push({ product, quantity: item.quantity });
+    }
+
+    // 2. Deduct stock for all items
+    for (const update of productsToUpdate) {
+      update.product.stock -= update.quantity;
+      await update.product.save();
+    }
 
     // Map cart items to the schema format
     const orderItems = items.map((item: any) => ({
@@ -79,5 +101,37 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Error creating order:", error);
     return NextResponse.json({ message: "An error occurred while placing the order." }, { status: 500 });
+  }
+}
+
+export async function GET(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    await dbConnect();
+
+    const userRole = (session.user as any).role;
+    const userId = (session.user as any).id;
+
+    let orders;
+    if (userRole === "admin") {
+      orders = await Order.find({})
+        .populate("user", "name email")
+        .populate("items.product")
+        .sort({ createdAt: -1 });
+    } else {
+      orders = await Order.find({ user: userId })
+        .populate("items.product")
+        .sort({ createdAt: -1 });
+    }
+
+    return NextResponse.json(orders);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }

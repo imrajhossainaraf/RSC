@@ -64,6 +64,10 @@
   padding-top: 1rem;
 }
 
+.mobileOnly {
+  display: none !important;
+}
+
 /* Mobile Dynamic Island */
 @media (max-width: 768px) {
   .sidebar {
@@ -106,5 +110,9 @@
     color: #fff;
     box-shadow: var(--shadow-glow);
     border-left: none;
+  }
+
+  .mobileOnly {
+    display: flex !important;
   }
 }

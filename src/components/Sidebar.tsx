@@ -28,6 +28,8 @@ export default function Sidebar() {
     if ((session.user as any).role === 'admin') {
       navItems.push({ name: 'Admin Panel', href: '/admin', icon: ShieldCheckIcon });
     }
+  } else {
+    navItems.push({ name: 'Login', href: '/login', icon: UserIcon, mobileOnly: true } as any);
   }
 
   return (
@@ -44,7 +46,7 @@ export default function Sidebar() {
             <Link 
               key={item.name} 
               href={item.href}
-              className={`${styles.link} ${isActive ? styles.active : ''}`}
+              className={`${styles.link} ${isActive ? styles.active : ''} ${(item as any).mobileOnly ? styles.mobileOnly : ''}`}
             >
               <Icon width={24} height={24} />
               <span>{item.name}</span>
