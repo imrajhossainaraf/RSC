@@ -1,4 +1,17 @@
 import mongoose from 'mongoose';
+import dns from 'dns';
+
+// Force DNS resolution to prioritize IPv4 and use public DNS servers (Google/Cloudflare) to bypass broken ISP DNS resolvers
+if (dns && typeof dns.setDefaultResultOrder === 'function') {
+  dns.setDefaultResultOrder('ipv4first');
+}
+if (dns && typeof dns.setServers === 'function') {
+  try {
+    dns.setServers(['8.8.8.8', '1.1.1.1']);
+  } catch (e) {
+    console.warn("Could not set custom DNS servers, using system default:", e);
+  }
+}
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
