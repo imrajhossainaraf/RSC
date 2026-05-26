@@ -1,0 +1,110 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 260px;
+  background: rgba(22, 25, 31, 0.7);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1.5rem;
+  z-index: 100;
+  transition: transform 0.3s ease;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 3rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo span {
+  color: var(--primary);
+  text-shadow: var(--shadow-glow);
+}
+
+.navLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.link:hover {
+  background: rgba(0, 210, 255, 0.1);
+  color: var(--primary);
+}
+
+.active {
+  background: linear-gradient(135deg, rgba(0, 210, 255, 0.15), rgba(58, 123, 213, 0.05));
+  color: var(--primary);
+  border-left: 3px solid var(--primary);
+}
+
+.bottomNav {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+/* Mobile Dynamic Island */
+@media (max-width: 768px) {
+  .sidebar {
+    top: auto;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 60px;
+    width: 90%;
+    max-width: 400px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border);
+    flex-direction: row;
+    padding: 0 20px;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+
+  .logo, .bottomNav, .link span {
+    display: none;
+  }
+
+  .navLinks {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    margin: 0;
+  }
+
+  .link {
+    padding: 10px;
+    border-radius: 50%;
+    justify-content: center;
+    border-left: none;
+  }
+  
+  .active {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: var(--shadow-glow);
+    border-left: none;
+  }
+}
