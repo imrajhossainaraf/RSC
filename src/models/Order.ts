@@ -14,7 +14,10 @@ const OrderSchema = new mongoose.Schema(
     buyerDetails: {
       name: { type: String, required: true },
       email: { type: String, required: true },
-      phone: { type: String, required: true }
+      phone: { type: String, required: true },
+      address: { type: String, required: true },
+      city: { type: String, required: true },
+      zipCode: { type: String, required: true }
     },
     items: [OrderItemSchema],
     total: { type: Number, required: true },
@@ -22,11 +25,6 @@ const OrderSchema = new mongoose.Schema(
       type: String, 
       enum: ['pending', 'processing', 'completed', 'cancelled'], 
       default: 'pending' 
-    },
-    shippingDetails: {
-      address: { type: String, required: true },
-      city: { type: String, required: true },
-      zipCode: { type: String, required: true }
     }
   },
   { timestamps: true }

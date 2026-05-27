@@ -1,7 +1,7 @@
 "use client";
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -17,9 +17,7 @@ export default function CartPage() {
   const [buyerDetails, setBuyerDetails] = useState({
     name: '',
     email: '',
-    phone: ''
-  });
-  const [shippingDetails, setShippingDetails] = useState({
+    phone: '',
     address: '',
     city: '',
     zipCode: ''
@@ -31,12 +29,10 @@ export default function CartPage() {
   const isBuyerComplete =
     buyerDetails.name.trim() !== '' &&
     buyerDetails.email.trim() !== '' &&
-    buyerDetails.phone.trim() !== '';
-
-  const isShippingComplete =
-    shippingDetails.address.trim() !== '' &&
-    shippingDetails.city.trim() !== '' &&
-    shippingDetails.zipCode.trim() !== '';
+    buyerDetails.phone.trim() !== '' &&
+    buyerDetails.address.trim() !== '' &&
+    buyerDetails.city.trim() !== '' &&
+    buyerDetails.zipCode.trim() !== '';
 
   useEffect(() => {
     if (session?.user) {
@@ -61,8 +57,8 @@ export default function CartPage() {
       return;
     }
 
-    if (!isShippingComplete) {
-      setError('Please complete shipping details before placing your order.');
+    if (!isBuyerComplete) {
+      setError('Please complete all buyer and shipping details before placing your order.');
       return;
     }
 
@@ -76,7 +72,6 @@ export default function CartPage() {
         body: JSON.stringify({
           items: cart,
           buyerDetails,
-          shippingDetails,
           total: totalPrice,
         })
       });
