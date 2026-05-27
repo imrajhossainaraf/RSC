@@ -104,6 +104,17 @@ export const authOptions: NextAuthOptions = {
         typedToken.role = typedUser.role ?? typedToken.role ?? "user";
         typedToken.id = typedUser.id ?? typedToken.id;
       }
+
+      // Ensure OAuth users receive the MongoDB user id in the token when possible
+      if (!typedToken.id && (token as any).email) {
+        try {
+          await dbConnect();
+          const existing = await User.findOne({ email: (token as any).email });
+          if (existing) typedToken.id = existing._id.toString();
+        } catch (e) {
+          // don't fail auth flow for lookup errors; token.id may remain unset
+        }
+      }
       return typedToken;
     },
     async session({ session, token }) {

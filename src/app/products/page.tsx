@@ -72,25 +72,31 @@ function ProductsContent() {
       ) : products.length > 0 ? (
         <div className={styles.grid}>
           {products.map((product) => (
-            <Link href={`/products/${product._id}`} key={product._id} className={styles.card}>
-              <div className={styles.imagePlaceholder}>
-                {product.image ? (
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    style={{ objectFit: 'cover' }}
-                  />
-                ) : (
-                  <div className={styles.imageFallback}>Image Placeholder</div>
-                )}
-                {product.discount > 0 && (
-                  <span className={styles.discountBadge}>-{product.discount}% OFF</span>
-                )}
-              </div>
+            <div key={product._id} className={styles.card}>
+              <Link href={`/products/${product._id}`} className={styles.cardImageLink}>
+                <div className={styles.imagePlaceholder}>
+                  {product.image ? (
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      style={{ objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <div className={styles.imageFallback}>Image Placeholder</div>
+                  )}
+                  {product.discount > 0 && (
+                    <span className={styles.discountBadge}>-{product.discount}% OFF</span>
+                  )}
+                </div>
+              </Link>
+
               <div className={styles.content}>
-                <h2 className={styles.title}>{product.name}</h2>
+                <Link href={`/products/${product._id}`} className={styles.titleLink}>
+                  <h2 className={styles.title}>{product.name}</h2>
+                </Link>
+
                 <div className={styles.priceRow}>
                   <div>
                     <span className={styles.price}>
@@ -101,8 +107,14 @@ function ProductsContent() {
                     )}
                   </div>
                 </div>
+
+                <div className={styles.cardFooter}>
+                  <Link href={`/products/${product._id}`} className="btn-primary">
+                    Order Now
+                  </Link>
+                </div>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       ) : (

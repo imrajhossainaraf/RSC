@@ -148,13 +148,21 @@ export async function GET() {
     const userRole = sessionUser?.role;
     const userId = sessionUser?.id;
 
-    const orders =
-      userRole === "admin"
-        ? await Order.find({})
-            .populate("user", "name email")
-            .populate("items.product")
-            .sort({ createdAt: -1 })
-        : await Order.find({ user: userId }).populate("items.product").sort({ createdAt: -1 });
+    let orders;
+    if (userRole === "admin") {
+      orders = await Order.find({})
+        .populate("user", "name email")
+        .populate("items.product")
+        .sort({ createdAt: -1 });
+    } else {
+      if (!isValidObjectId(userId)) {
+        // If the session contains a non-ObjectId id (e.g. from an OAuth provider),
+        // attempt to avoid a CastError by returning an empty list instead of throwing.
+        return NextResponse.json([]);
+      }
+
+      orders = await Order.find({ user: userId }).populate("items.product").sort({ createdAt: -1 });
+    }
 
     return NextResponse.json(orders);
   } catch (error) {

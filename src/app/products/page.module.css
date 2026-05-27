@@ -72,6 +72,19 @@
   gap: 10px;
 }
 
+.titleLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.cardImageLink {
+  display: block;
+}
+
+.cardFooter {
+  margin-top: auto;
+}
+
 .title {
   font-size: 1.25rem;
   font-weight: 600;
