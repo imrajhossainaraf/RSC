@@ -1,21 +1,60 @@
-import dbConnect from "@/lib/mongodb";
-import Category from "@/models/Category";
-import Product from "@/models/Product";
-import { NextResponse } from "next/server";
+const mongoose = require('mongoose');
+const fs = require('fs');
+const path = require('path');
 
-export async function GET() {
-  if (process.env.NODE_ENV === 'production' && process.env.ENABLE_DB_SEED !== 'true') {
-    return NextResponse.json({ message: 'Seed endpoint is disabled in production.' }, { status: 403 });
+// Load .env.local manually
+const envPath = path.join(__dirname, '..', '.env.local');
+const envContent = fs.readFileSync(envPath, 'utf-8');
+const lines = envContent.split('\n');
+let MONGODB_URI = '';
+
+for (const line of lines) {
+  if (line.startsWith('MONGODB_URI=')) {
+    MONGODB_URI = line.replace('MONGODB_URI=', '').trim();
+    break;
   }
+}
 
+if (!MONGODB_URI) {
+  throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
+}
+
+// Define schemas
+const categorySchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, unique: true },
+    description: { type: String },
+  },
+  { timestamps: true }
+);
+
+const productSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    description: { type: String, required: true },
+    price: { type: Number, required: true },
+    discount: { type: Number, default: 0 },
+    category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
+    stock: { type: Number, default: 0 },
+    image: { type: String, required: true },
+  },
+  { timestamps: true }
+);
+
+const Category = mongoose.model('Category', categorySchema);
+const Product = mongoose.model('Product', productSchema);
+
+async function seedDatabase() {
   try {
-    await dbConnect();
+    await mongoose.connect(MONGODB_URI);
+    console.log('Connected to MongoDB');
 
-    // 1. Clean existing records to make a clean-slate demo
+    // Clear existing data
     await Product.deleteMany({});
     await Category.deleteMany({});
+    console.log('Cleared existing data');
 
-    // 2. Create Categories
+    // Create categories
     const categoriesData = [
       { name: "Microcontrollers" },
       { name: "Sensors & Modules" },
@@ -24,13 +63,14 @@ export async function GET() {
     ];
     
     const createdCategories = await Category.insertMany(categoriesData);
+    console.log(`Created ${createdCategories.length} categories`);
 
-    const findCatId = (name: string) => {
+    const findCatId = (name) => {
       const cat = createdCategories.find(c => c.name === name);
       return cat ? cat._id : null;
     };
 
-    // 3. Create Premium Products with real details & local public generated images
+    // Create products
     const productsData = [
       {
         name: "Arduino Uno R3 Microcontroller",
@@ -98,15 +138,16 @@ export async function GET() {
     ];
 
     const createdProducts = await Product.insertMany(productsData);
-
-    return NextResponse.json({
-      message: "Database seeded successfully!",
-      categoriesCount: createdCategories.length,
-      productsCount: createdProducts.length
-    });
+    console.log(`Created ${createdProducts.length} products`);
+    console.log('\nDatabase seeded successfully!');
+    
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error("Seeding error:", error);
-    return NextResponse.json({ message: "Seeding failed", error: message }, { status: 500 });
+    console.error('Seeding failed:', error.message);
+    process.exit(1);
+  } finally {
+    await mongoose.disconnect();
+    console.log('Disconnected from MongoDB');
   }
 }
+
+seedDatabase();

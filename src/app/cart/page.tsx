@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import { useState } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useSession } from 'next-auth/react';
@@ -10,7 +11,7 @@ import styles from './page.module.css';
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, clearCart, totalPrice } = useCart();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
 
   const [shippingDetails, setShippingDetails] = useState({
@@ -50,7 +51,7 @@ export default function CartPage() {
         const data = await res.json();
         setError(data.message || 'Failed to place order');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred during checkout');
     } finally {
       setLoading(false);
@@ -89,9 +90,16 @@ export default function CartPage() {
         <div className={styles.cartItems}>
           {cart.map((item) => (
             <div key={item.productId} className={styles.cartItem}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={item.image} alt={item.name} className={styles.itemImage} />
-              
+              <Image
+                src={item.image}
+                alt={item.name}
+                width={96}
+                height={96}
+                sizes="96px"
+                style={{ objectFit: 'cover', borderRadius: '0.75rem' }}
+                className={styles.itemImage}
+              />
+
               <div className={styles.itemInfo}>
                 <Link href={`/products/${item.productId}`} className={styles.itemName}>
                   {item.name}

@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { 
@@ -52,25 +53,25 @@ export default function ProfilePage() {
     }
   }, [status, router]);
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      fetchOrders();
-    }
-  }, [status]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       const res = await fetch("/api/orders");
       if (res.ok) {
         const data = await res.json();
         setOrders(data);
       }
-    } catch (e) {
-      console.error("Error fetching orders:", e);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
     } finally {
       setLoadingOrders(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      void Promise.resolve().then(() => fetchOrders());
+    }
+  }, [status, fetchOrders]);
 
   const toggleOrderExpansion = (orderId: string) => {
     setExpandedOrders(prev => ({
@@ -92,7 +93,7 @@ export default function ProfilePage() {
     return null; // Will redirect in useEffect
   }
 
-  const user = session.user as any;
+  const user = session.user as { name?: string | null; email?: string | null; image?: string | null; role?: string };
 
   return (
     <div className={styles.container}>
@@ -101,8 +102,14 @@ export default function ProfilePage() {
         <div className={styles.profileGlow}></div>
         <div className={styles.avatarSection}>
           {user.image ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={user.image} alt={user.name} className={styles.avatar} />
+            <Image
+              src={user.image}
+              alt={user.name ?? 'Profile avatar'}
+              width={96}
+              height={96}
+              className={styles.avatar}
+              style={{ objectFit: 'cover' }}
+            />
           ) : (
             <div className={styles.avatarPlaceholder}>
               <UserIcon width={48} height={48} />
@@ -212,8 +219,14 @@ export default function ProfilePage() {
                           {order.items.map((item, idx) => (
                             <div key={idx} className={styles.itemRow}>
                               {item.product?.image ? (
-                                /* eslint-disable-next-line @next/next/no-img-element */
-                                <img src={item.product.image} alt={item.product.name || "Product"} className={styles.itemImage} />
+                                <Image
+                                  src={item.product.image}
+                                  alt={item.product.name || "Product"}
+                                  width={80}
+                                  height={80}
+                                  className={styles.itemImage}
+                                  style={{ objectFit: 'cover' }}
+                                />
                               ) : (
                                 <div className={styles.itemImagePlaceholder}></div>
                               )}

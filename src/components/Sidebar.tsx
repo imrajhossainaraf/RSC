@@ -13,11 +13,23 @@ import {
   ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
 
+type NavItem = {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ width?: number; height?: number }>;
+  mobileOnly?: boolean;
+};
+
+type SessionUser = {
+  role?: string;
+};
+
 export default function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const sessionUser = session?.user as SessionUser | undefined;
 
-  const navItems = [
+  const navItems: NavItem[] = [
     { name: 'Home', href: '/', icon: HomeIcon },
     { name: 'Products', href: '/products', icon: CpuChipIcon },
     { name: 'Cart', href: '/cart', icon: ShoppingCartIcon },
@@ -25,11 +37,11 @@ export default function Sidebar() {
 
   if (session?.user) {
     navItems.push({ name: 'Profile', href: '/profile', icon: UserIcon });
-    if ((session.user as any).role === 'admin') {
+    if (sessionUser?.role === 'admin') {
       navItems.push({ name: 'Admin Panel', href: '/admin', icon: ShieldCheckIcon });
     }
   } else {
-    navItems.push({ name: 'Login', href: '/login', icon: UserIcon, mobileOnly: true } as any);
+    navItems.push({ name: 'Login', href: '/login', icon: UserIcon, mobileOnly: true });
   }
 
   return (
@@ -46,7 +58,7 @@ export default function Sidebar() {
             <Link 
               key={item.name} 
               href={item.href}
-              className={`${styles.link} ${isActive ? styles.active : ''} ${(item as any).mobileOnly ? styles.mobileOnly : ''}`}
+              className={`${styles.link} ${isActive ? styles.active : ''} ${item.mobileOnly ? styles.mobileOnly : ''}`}
             >
               <Icon width={24} height={24} />
               <span>{item.name}</span>

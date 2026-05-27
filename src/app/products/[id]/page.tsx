@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import dbConnect from '@/lib/mongodb';
 import Product from '@/models/Product';
@@ -29,8 +30,15 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     <div className={styles.detailContainer}>
       <div className={styles.imageSection}>
         {product.image ? (
-           /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={product.image} alt={product.name} className={styles.image} />
+          <div className={styles.imageWrapper}>
+            <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              sizes="(max-width: 768px) 100vw, 33vw"
+              style={{ objectFit: 'cover' }}
+            />
+          </div>
         ) : (
           <div className={styles.placeholder}>No Image Available</div>
         )}

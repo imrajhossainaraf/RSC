@@ -87,7 +87,7 @@ input:focus, textarea:focus, select:focus {
 .main-content {
   flex: 1;
   padding: 2rem;
-  margin-left: 260px; /* Space for desktop sidebar */
+  margin-left: 88px; /* Space for collapsed desktop sidebar */
   transition: margin 0.3s ease;
 }
 

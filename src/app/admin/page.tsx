@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 
 export default function AdminDashboard() {
+  const { data: session, status } = useSession();
+  const sessionUser = session?.user as { role?: string } | undefined;
+  const router = useRouter();
   const [product, setProduct] = useState({
     name: '',
     description: '',
@@ -16,6 +21,25 @@ export default function AdminDashboard() {
   
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [status, router]);
+
+  if (status === 'loading') {
+    return <div className={styles.loadingState}>Loading admin dashboard...</div>;
+  }
+
+  if (status === 'authenticated' && sessionUser?.role !== 'admin') {
+    return (
+      <div className={styles.emptyState}>
+        <h2>Access denied</h2>
+        <p>You do not have permission to access the admin dashboard.</p>
+      </div>
+    );
+  }
 
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();

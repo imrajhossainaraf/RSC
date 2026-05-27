@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import styles from './page.module.css';
@@ -21,31 +22,34 @@ function ProductsContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-
   const fetchProducts = useCallback(async (searchQuery = '') => {
     setLoading(true);
     let url = '/api/products?';
     if (category) url += `category=${category}&`;
     if (searchQuery) url += `search=${searchQuery}`;
-    
+
     try {
       const res = await fetch(url);
       const data = await res.json();
       setProducts(data);
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
     } finally {
       setLoading(false);
     }
   }, [category]);
 
   useEffect(() => {
-    fetchProducts();
+    const loadProducts = async () => {
+      await fetchProducts();
+    };
+
+    void loadProducts();
   }, [fetchProducts]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    fetchProducts(search);
+    void fetchProducts(search);
   };
 
   return (
@@ -71,10 +75,15 @@ function ProductsContent() {
             <Link href={`/products/${product._id}`} key={product._id} className={styles.card}>
               <div className={styles.imagePlaceholder}>
                 {product.image ? (
-                   /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    style={{ objectFit: 'cover' }}
+                  />
                 ) : (
-                  "Image Placeholder"
+                  <div className={styles.imageFallback}>Image Placeholder</div>
                 )}
                 {product.discount > 0 && (
                   <span className={styles.discountBadge}>-{product.discount}% OFF</span>

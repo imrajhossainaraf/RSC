@@ -127,6 +127,84 @@
   font-weight: 600;
 }
 
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.sectionDescription {
+  color: #a0aec0;
+  max-width: 600px;
+}
+
+.viewAll {
+  color: var(--primary);
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.viewAll:hover {
+  color: #fff;
+}
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.featureCard {
+  background: linear-gradient(180deg, rgba(20, 27, 40, 0.95), rgba(14, 17, 22, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.featureImage {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 210, 255, 0.1);
+  color: var(--primary);
+}
+
+.featureMeta {
+  color: #7f9cf5;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.featureCardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.cardButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1rem;
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+  color: #fff;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cardButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(0, 210, 255, 0.25);
+}
+
 @media (max-width: 768px) {
   .hero {
     padding: 3rem 1.5rem;
@@ -134,5 +212,10 @@
   
   .hero h1 {
     font-size: 2.5rem;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
