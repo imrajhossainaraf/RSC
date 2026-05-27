@@ -4,6 +4,7 @@ import { authOptions } from "../auth/[...nextauth]/route";
 import dbConnect from "@/lib/mongodb";
 import Order from "@/models/Order";
 import Product from "@/models/Product";
+import User from "@/models/User";
 import nodemailer from "nodemailer";
 import { isValidObjectId, sanitizeString } from "@/lib/validation";
 
@@ -14,9 +15,16 @@ type OrderItemPayload = {
   quantity: number;
 };
 
+type BuyerDetailsPayload = {
+  name: string;
+  email: string;
+  phone: string;
+};
+
 type ProductDocument = {
   stock: number;
   name: string;
+  image?: string;
   save: () => Promise<unknown>;
 };
 
@@ -24,12 +32,26 @@ export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     const sessionUser = session?.user as { id?: string; role?: string; email?: string } | undefined;
-    if (!session || !sessionUser?.id) {
+
+    if (!session || !sessionUser) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!isValidObjectId(sessionUser.id) && sessionUser.email) {
+      await dbConnect();
+      const existingUser = await User.findOne({ email: sessionUser.email });
+      if (existingUser) {
+        sessionUser.id = existingUser._id.toString();
+      }
+    }
+
+    if (!isValidObjectId(sessionUser.id)) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const payload = (await req.json()) as Record<string, unknown>;
     const items = Array.isArray(payload.items) ? payload.items : [];
+    const buyerDetails = (payload.buyerDetails as Record<string, unknown> | undefined) ?? {};
     const shippingDetails = (payload.shippingDetails as Record<string, unknown> | undefined) ?? {};
     const total = Number(payload.total) || 0;
 
@@ -37,9 +59,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Cart is empty." }, { status: 400 });
     }
 
+    const buyerName = sanitizeString(buyerDetails.name);
+    const buyerEmail = sanitizeString(buyerDetails.email);
+    const buyerPhone = sanitizeString(buyerDetails.phone);
     const address = sanitizeString(shippingDetails.address);
     const city = sanitizeString(shippingDetails.city);
     const zipCode = sanitizeString(shippingDetails.zipCode);
+
+    if (!buyerName || !buyerEmail || !buyerPhone) {
+      return NextResponse.json({ message: "Buyer name, email, and phone are required." }, { status: 400 });
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail)) {
+      return NextResponse.json({ message: "Invalid buyer email address." }, { status: 400 });
+    }
+
+    if (!/^[0-9+()\s-]{6,30}$/.test(buyerPhone)) {
+      return NextResponse.json({ message: "Invalid buyer phone number." }, { status: 400 });
+    }
 
     if (!address || !city || !zipCode) {
       return NextResponse.json({ message: "Shipping details are required." }, { status: 400 });
@@ -79,12 +116,19 @@ export async function POST(req: Request) {
 
     const orderItems = items.map((item: OrderItemPayload) => ({
       product: item.productId,
+      productName: item.name,
+      productImage: (item as any).image || '',
       quantity: Number(item.quantity),
       priceAtPurchase: Number(item.price),
     }));
 
     const order = await Order.create({
       user: sessionUser.id,
+      buyerDetails: {
+        name: buyerName,
+        email: buyerEmail,
+        phone: buyerPhone,
+      },
       items: orderItems,
       total,
       shippingDetails: { address, city, zipCode },

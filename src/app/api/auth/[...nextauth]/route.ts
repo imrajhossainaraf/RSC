@@ -5,7 +5,7 @@ import GithubProvider from "next-auth/providers/github";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
-import { normalizeEmail, sanitizeString } from "@/lib/validation";
+import { normalizeEmail, sanitizeString, isValidObjectId } from "@/lib/validation";
 
 type AuthUser = {
   id?: string;
@@ -106,7 +106,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       // Ensure OAuth users receive the MongoDB user id in the token when possible
-      if (!typedToken.id && (token as any).email) {
+      if (!isValidObjectId(typedToken.id) && (token as any).email) {
         try {
           await dbConnect();
           const existing = await User.findOne({ email: (token as any).email });

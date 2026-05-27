@@ -11,9 +11,14 @@ import styles from './page.module.css';
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, clearCart, totalPrice } = useCart();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
+  const [buyerDetails, setBuyerDetails] = useState({
+    name: '',
+    email: '',
+    phone: ''
+  });
   const [shippingDetails, setShippingDetails] = useState({
     address: '',
     city: '',
@@ -23,10 +28,41 @@ export default function CartPage() {
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [error, setError] = useState('');
 
+  const isBuyerComplete =
+    buyerDetails.name.trim() !== '' &&
+    buyerDetails.email.trim() !== '' &&
+    buyerDetails.phone.trim() !== '';
+
+  const isShippingComplete =
+    shippingDetails.address.trim() !== '' &&
+    shippingDetails.city.trim() !== '' &&
+    shippingDetails.zipCode.trim() !== '';
+
+  useEffect(() => {
+    if (session?.user) {
+      setBuyerDetails((prev) => ({
+        ...prev,
+        name: session.user.name ?? prev.name,
+        email: session.user.email ?? prev.email,
+      }));
+    }
+  }, [session]);
+
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (status === 'loading') {
+      setError('Checking login status, please wait...');
+      return;
+    }
+
     if (status !== 'authenticated') {
       router.push('/login');
+      return;
+    }
+
+    if (!isShippingComplete) {
+      setError('Please complete shipping details before placing your order.');
       return;
     }
 
@@ -39,6 +75,7 @@ export default function CartPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: cart,
+          buyerDetails,
           shippingDetails,
           total: totalPrice,
         })
@@ -51,7 +88,8 @@ export default function CartPage() {
         const data = await res.json();
         setError(data.message || 'Failed to place order');
       }
-    } catch {
+    } catch (fetchError) {
+      console.error('Checkout error:', fetchError);
       setError('An error occurred during checkout');
     } finally {
       setLoading(false);
@@ -152,7 +190,11 @@ export default function CartPage() {
                 <label>Zip Code</label>
                 <input required type="text" value={shippingDetails.zipCode} onChange={e => setShippingDetails({...shippingDetails, zipCode: e.target.value})} />
               </div>
-              <button type="submit" className={`btn-primary ${styles.checkoutBtn}`} disabled={loading}>
+              <button
+                type="submit"
+                className={`btn-primary ${styles.checkoutBtn}`}
+                disabled={loading || !isShippingComplete || status !== 'authenticated'}
+              >
                 {loading ? 'Processing...' : 'Place Order'}
               </button>
             </form>
