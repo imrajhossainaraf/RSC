@@ -23,6 +23,8 @@ type OrderItem = {
     image: string;
     price: number;
   } | null;
+  productName?: string;
+  productImage?: string;
   quantity: number;
   priceAtPurchase: number;
 };
@@ -32,7 +34,10 @@ type Order = {
   items: OrderItem[];
   total: number;
   status: "pending" | "processing" | "completed" | "cancelled";
-  shippingDetails: {
+  buyerDetails: {
+    name: string;
+    email: string;
+    phone: string;
     address: string;
     city: string;
     zipCode: string;
@@ -201,9 +206,13 @@ export default function ProfilePage() {
                     <div className={styles.orderDetails}>
                       <div className={styles.detailsGrid}>
                         <div className={styles.shippingSection}>
-                          <h3>Shipping Address</h3>
-                          <p>{order.shippingDetails.address}</p>
-                          <p>{order.shippingDetails.city} - {order.shippingDetails.zipCode}</p>
+                          <h3>Buyer Information</h3>
+                          <p><strong>{order.buyerDetails.name}</strong></p>
+                          <p>{order.buyerDetails.email}</p>
+                          <p>{order.buyerDetails.phone}</p>
+                          <h3 style={{ marginTop: '1rem' }}>Shipping Address</h3>
+                          <p>{order.buyerDetails.address}</p>
+                          <p>{order.buyerDetails.city} - {order.buyerDetails.zipCode}</p>
                         </div>
                         
                         <div className={styles.paymentSection}>
@@ -218,10 +227,10 @@ export default function ProfilePage() {
                         <div className={styles.itemsList}>
                           {order.items.map((item, idx) => (
                             <div key={idx} className={styles.itemRow}>
-                              {item.product?.image ? (
+                              {(item.product?.image || item.productImage) ? (
                                 <Image
-                                  src={item.product.image}
-                                  alt={item.product.name || "Product"}
+                                  src={item.product?.image || item.productImage || '/images/placeholder.png'}
+                                  alt={item.product?.name || item.productName || "Product"}
                                   width={80}
                                   height={80}
                                   className={styles.itemImage}
@@ -231,7 +240,7 @@ export default function ProfilePage() {
                                 <div className={styles.itemImagePlaceholder}></div>
                               )}
                               <div className={styles.itemMeta}>
-                                <span className={styles.itemName}>{item.product?.name || "Deleted Product"}</span>
+                                <span className={styles.itemName}>{item.product?.name || item.productName || "Deleted Product"}</span>
                                 <span className={styles.itemPrice}>
                                   {item.quantity} x ${item.priceAtPurchase.toFixed(2)}
                                 </span>

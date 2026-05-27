@@ -172,23 +172,71 @@ export default function CartPage() {
 
           {status === 'authenticated' ? (
             <form onSubmit={handleCheckout} className={styles.shippingForm}>
-              <h3 style={{ fontSize: '1.1rem', marginTop: '1rem' }}>Shipping Details</h3>
+              <h3 style={{ fontSize: '1.1rem', marginTop: '1rem' }}>Buyer & Shipping Details</h3>
+              <div className={styles.formGroup}>
+                <label>Full Name</label>
+                <input
+                  required
+                  type="text"
+                  value={buyerDetails.name}
+                  onChange={e => setBuyerDetails({ ...buyerDetails, name: e.target.value })}
+                  placeholder="John Doe"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Email Address</label>
+                <input
+                  required
+                  type="email"
+                  value={buyerDetails.email}
+                  onChange={e => setBuyerDetails({ ...buyerDetails, email: e.target.value })}
+                  placeholder="name@example.com"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Phone Number</label>
+                <input
+                  required
+                  type="tel"
+                  value={buyerDetails.phone}
+                  onChange={e => setBuyerDetails({ ...buyerDetails, phone: e.target.value })}
+                  placeholder="+1234567890"
+                />
+              </div>
               <div className={styles.formGroup}>
                 <label>Address</label>
-                <input required type="text" value={shippingDetails.address} onChange={e => setShippingDetails({...shippingDetails, address: e.target.value})} />
+                <input
+                  required
+                  type="text"
+                  value={buyerDetails.address}
+                  onChange={e => setBuyerDetails({ ...buyerDetails, address: e.target.value })}
+                  placeholder="123 Main St"
+                />
               </div>
               <div className={styles.formGroup}>
                 <label>City</label>
-                <input required type="text" value={shippingDetails.city} onChange={e => setShippingDetails({...shippingDetails, city: e.target.value})} />
+                <input
+                  required
+                  type="text"
+                  value={buyerDetails.city}
+                  onChange={e => setBuyerDetails({ ...buyerDetails, city: e.target.value })}
+                  placeholder="Dhaka"
+                />
               </div>
               <div className={styles.formGroup}>
                 <label>Zip Code</label>
-                <input required type="text" value={shippingDetails.zipCode} onChange={e => setShippingDetails({...shippingDetails, zipCode: e.target.value})} />
+                <input
+                  required
+                  type="text"
+                  value={buyerDetails.zipCode}
+                  onChange={e => setBuyerDetails({ ...buyerDetails, zipCode: e.target.value })}
+                  placeholder="1207"
+                />
               </div>
               <button
                 type="submit"
                 className={`btn-primary ${styles.checkoutBtn}`}
-                disabled={loading || !isShippingComplete || status !== 'authenticated'}
+                disabled={loading || !isBuyerComplete}
               >
                 {loading ? 'Processing...' : 'Place Order'}
               </button>
