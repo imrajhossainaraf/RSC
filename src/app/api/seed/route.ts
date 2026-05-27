@@ -15,92 +15,150 @@ export async function GET() {
     await Product.deleteMany({});
     await Category.deleteMany({});
 
-    // 2. Create Categories
+    // 2. Define the 23 Categories matching the sidebar
     const categoriesData = [
-      { name: "Microcontrollers" },
-      { name: "Sensors & Modules" },
-      { name: "Motors & Actuators" },
-      { name: "Power & Batteries" }
+      { name: "Electronics Components", slug: "electronics-components", icon: "CpuChipIcon", featured: true },
+      { name: "Development Boards", slug: "development-boards", icon: "CommandLineIcon", featured: true },
+      { name: "Robotics & Automation", slug: "robotics-automation", icon: "CubeTransparentIcon", featured: true },
+      { name: "RC Models & Vehicles", slug: "rc-models-vehicles", icon: "TruckIcon" },
+      { name: "RC Transmitters & Receivers", slug: "rc-transmitters-receivers", icon: "SignalIcon" },
+      { name: "Drones & Accessories", slug: "drones-accessories", icon: "RocketLaunchIcon", featured: true },
+      { name: "Power & Batteries", slug: "power-batteries", icon: "BoltIcon" },
+      { name: "Tools & Equipment", slug: "tools-equipment", icon: "WrenchScrewdriverIcon" },
+      { name: "Test & Measurement Instruments", slug: "test-measurement", icon: "BeakerIcon" },
+      { name: "Cables & Connectors", slug: "cables-connectors", icon: "LinkIcon" },
+      { name: "Switches & Relays", slug: "switches-relays", icon: "AdjustmentsHorizontalIcon" },
+      { name: "Motors & Drivers", slug: "motors-drivers", icon: "Cog6ToothIcon", featured: true },
+      { name: "Wireless Communication Modules", slug: "wireless-modules", icon: "WifiIcon" },
+      { name: "Solar", slug: "solar", icon: "SunIcon" },
+      { name: "PCB & Prototyping", slug: "pcb-prototyping", icon: "CircleStackIcon" },
+      { name: "LEDs & Lighting", slug: "leds-lighting", icon: "LightBulbIcon" },
+      { name: "Display Modules", slug: "display-modules", icon: "ComputerDesktopIcon" },
+      { name: "Audio Components", slug: "audio-components", icon: "SpeakerWaveIcon" },
+      { name: "Industrial Electronics", slug: "industrial-electronics", icon: "BuildingOffice2Icon" },
+      { name: "IoT Devices", slug: "iot-devices", icon: "GlobeAltIcon" },
+      { name: "DIY Electronics Kits", slug: "diy-kits", icon: "PuzzlePieceIcon" },
+      { name: "Electronic Gadgets", slug: "electronic-gadgets", icon: "DevicePhoneMobileIcon" },
+      { name: "Electrical Accessories", slug: "electrical-accessories", icon: "SparklesIcon" }
     ];
     
     const createdCategories = await Category.insertMany(categoriesData);
 
-    const findCatId = (name: string) => {
-      const cat = createdCategories.find(c => c.name === name);
+    const findCatId = (slug: string) => {
+      const cat = createdCategories.find(c => c.slug === slug);
       return cat ? cat._id : null;
     };
 
-    // 3. Create Premium Products with real details & local public generated images
+    // 3. Create sample premium products linked with new categories
     const productsData = [
       {
         name: "Arduino Uno R3 Microcontroller",
-        description: "The Arduino Uno R3 is the perfect board to get started with electronics and coding. Featuring the ATmega328P microcontroller, 14 digital input/output pins, and 6 analog inputs, it is reliable, robust, and supported by a massive global developer community.",
-        price: 12.50,
+        description: "The classic ATmega328P based microcontroller board. Featuring 14 digital I/O pins, 6 analog inputs, and a robust build quality designed for beginner coding to advanced electronics.",
+        price: 24.50,
         discount: 10,
-        stock: 50,
+        stock: 45,
         image: "/images/arduino_uno.png",
-        category: findCatId("Microcontrollers")
+        featured: true,
+        category: findCatId("development-boards"),
+        tags: ["arduino", "mcu", "avr", "board"],
+        specs: { "MCU": "ATmega328P", "Operating Voltage": "5V", "Flash Memory": "32 KB" }
       },
       {
-        name: "ESP32 NodeMCU Development Board",
-        description: "The ESP32 is a powerful Wi-Fi and Bluetooth-enabled system-on-chip microcontroller. Excellent for smart home systems, web-connected sensors, robotics projects, and advanced Internet of Things (IoT) applications.",
-        price: 8.00,
+        name: "Raspberry Pi 4 Model B (8GB)",
+        description: "High-performance quad-core 64-bit single board computer. Ideal for IoT projects, edge computing, smart robotics controllers, and media centers.",
+        price: 75.00,
         discount: 0,
-        stock: 120,
-        image: "/images/arduino_uno.png",
-        category: findCatId("Microcontrollers")
+        stock: 20,
+        image: "/images/raspberry_pi.png",
+        featured: true,
+        category: findCatId("development-boards"),
+        tags: ["raspberry", "pi", "rpi", "sbc"],
+        specs: { "RAM": "8GB LPDDR4", "SoC": "Broadcom BCM2711", "CPU": "Quad-core Cortex-A72" }
+      },
+      {
+        name: "Brushless DC Motor 400KV",
+        description: "High-torque 400KV brushless DC motor built for multirotors, drones, and RC aircraft. Offers high efficiency and long battery life under loads.",
+        price: 112.00,
+        discount: 5,
+        stock: 15,
+        image: "/images/brushless_motor.png",
+        featured: true,
+        category: findCatId("motors-drivers"),
+        tags: ["motor", "bldc", "brushless", "drone"],
+        specs: { "KV": "400", "Max Power": "1200W", "Weight": "145g" }
+      },
+      {
+        name: "Carbon Fiber Propellers (Set)",
+        description: "Rigid, lightweight 10-inch carbon fiber propeller pairs (CW/CCW) designed to minimize vibration and enhance drone stability.",
+        price: 45.99,
+        discount: 15,
+        stock: 30,
+        image: "/images/propellers.png",
+        featured: true,
+        category: findCatId("drones-accessories"),
+        tags: ["propeller", "drone", "carbon", "cf"],
+        specs: { "Size": "10x4.5", "Material": "Carbon Fiber", "Type": "CW + CCW" }
+      },
+      {
+        name: "LiPo Battery Pack 5000mAh",
+        description: "3S 11.1V high-capacity Lithium Polymer battery pack with 50C discharge rate. Includes XT60 connector.",
+        price: 89.00,
+        discount: 0,
+        stock: 25,
+        image: "/images/lipo_battery.png",
+        featured: true,
+        category: findCatId("power-batteries"),
+        tags: ["lipo", "battery", "power", "rc"],
+        specs: { "Voltage": "11.1V", "Capacity": "5000mAh", "Discharge Rate": "50C" }
       },
       {
         name: "HC-SR04 Ultrasonic Distance Sensor",
-        description: "High-precision HC-SR04 ultrasonic distance sonar module provides non-contact measurement range from 2cm to 400cm. Ideal for robot obstacle avoidance systems, automatic smart trash cans, and fluid level measurement.",
-        price: 3.50,
-        discount: 0,
-        stock: 85,
-        image: "/images/ultrasonic_sensor.png",
-        category: findCatId("Sensors & Modules")
-      },
-      {
-        name: "DHT22 Temperature & Humidity Sensor",
-        description: "The DHT22 is a basic, low-cost digital temperature and humidity sensor. It uses a capacitive humidity sensor and a thermistor to measure the surrounding air, yielding a high-accuracy digital signal on the data pin.",
-        price: 4.50,
-        discount: 15,
-        stock: 60,
-        image: "/images/ultrasonic_sensor.png",
-        category: findCatId("Sensors & Modules")
-      },
-      {
-        name: "SG90 Micro Servo Motor 9g",
-        description: "Lightweight, high-quality, and lightning-fast SG90 micro servo. Rotates 180 degrees (90 in each direction) and is perfect for small robotic arms, animatronics, camera gimbals, and steering mechanisms.",
-        price: 2.80,
+        description: "Non-contact ultrasonic distance measuring module providing 2cm to 400cm sensing range. Ideal for obstacle detection in robotics projects.",
+        price: 12.50,
         discount: 0,
         stock: 150,
-        image: "/images/servo_motor.png",
-        category: findCatId("Motors & Actuators")
+        image: "/images/ultrasonic_sensor.png",
+        featured: true,
+        category: findCatId("electronics-components"),
+        tags: ["sensor", "sonar", "ultrasonic", "distance"],
+        specs: { "Sensing Range": "2cm - 400cm", "Operating Current": "15mA", "Supply Voltage": "5V" }
       },
       {
-        name: "NEMA 17 Stepper Motor 40mm",
-        description: "High-torque NEMA 17 stepper motor, perfect for 3D printers, CNC machines, mechanical arms, and high-precision automation systems. Comes with a detachable 1-meter connection cable.",
-        price: 15.00,
-        discount: 5,
-        stock: 35,
+        name: "High-Torque Metal Gear Servo",
+        description: "MG996R high torque metal gear dual-ball bearing servo motor for RC cars, robotic joints, and mechanical steering links.",
+        price: 32.00,
+        discount: 8,
+        stock: 40,
         image: "/images/servo_motor.png",
-        category: findCatId("Motors & Actuators")
+        featured: true,
+        category: findCatId("motors-drivers"),
+        tags: ["servo", "motor", "robotic", "steering"],
+        specs: { "Stall Torque": "12 kg-cm", "Operating Voltage": "4.8V - 7.2V", "Weight": "55g" }
       },
       {
-        name: "18650 Li-ion Battery Pack 3.7V",
-        description: "Premium high-capacity rechargeable 18650 lithium-ion cell, perfect for mobile robotics, wearable tech power hubs, and high-drain applications. Features integrated voltage overload protection.",
-        price: 6.50,
+        name: "Pro Jumper Wire Kit (120pcs)",
+        description: "Premium selection of male-to-male, female-to-female, and male-to-female breadboard connection jumper wires.",
+        price: 18.25,
         discount: 0,
-        stock: 90,
-        image: "/images/lithium_battery.png",
-        category: findCatId("Power & Batteries")
+        stock: 200,
+        image: "/images/jumper_wires.png",
+        featured: true,
+        category: findCatId("cables-connectors"),
+        tags: ["wire", "jumper", "cable", "breadboard"],
+        specs: { "Quantity": "120 pcs", "Length": "20cm", "Types": "M-M, F-F, M-F" }
       }
     ];
 
     const createdProducts = await Product.insertMany(productsData);
 
+    // Update Category counts
+    for (const cat of createdCategories) {
+      const count = await Product.countDocuments({ category: cat._id });
+      await Category.findByIdAndUpdate(cat._id, { productCount: count });
+    }
+
     return NextResponse.json({
-      message: "Database seeded successfully!",
+      message: "Robotics Shop CTG Database Seeded Successfully!",
       categoriesCount: createdCategories.length,
       productsCount: createdProducts.length
     });

@@ -106,12 +106,12 @@ export const authOptions: NextAuthOptions = {
       }
 
       // Ensure OAuth users receive the MongoDB user id in the token when possible
-      if (!isValidObjectId(typedToken.id) && (token as any).email) {
+      if (!isValidObjectId(typedToken.id) && typedToken.email) {
         try {
           await dbConnect();
-          const existing = await User.findOne({ email: (token as any).email });
+          const existing = await User.findOne({ email: String(typedToken.email) });
           if (existing) typedToken.id = existing._id.toString();
-        } catch (e) {
+        } catch {
           // don't fail auth flow for lookup errors; token.id may remain unset
         }
       }

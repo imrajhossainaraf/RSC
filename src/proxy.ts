@@ -23,5 +23,6 @@ export const config = {
     "/cart/checkout",
     "/profile/:path*",
     "/admin/:path*",
+    "/wishlist/:path*",
   ],
 };

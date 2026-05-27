@@ -36,11 +36,17 @@ export default function CartPage() {
 
   useEffect(() => {
     if (session?.user) {
-      setBuyerDetails((prev) => ({
-        ...prev,
-        name: session.user.name ?? prev.name,
-        email: session.user.email ?? prev.email,
-      }));
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setBuyerDetails((prev) => {
+        if (prev.name === '' && prev.email === '') {
+          return {
+            ...prev,
+            name: session.user?.name ?? '',
+            email: session.user?.email ?? '',
+          };
+        }
+        return prev;
+      });
     }
   }, [session]);
 

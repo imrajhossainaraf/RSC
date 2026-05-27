@@ -112,13 +112,16 @@ export async function POST(req: Request) {
       await update.product.save();
     }
 
-    const orderItems = items.map((item: OrderItemPayload) => ({
-      product: item.productId,
-      productName: item.name,
-      productImage: (item as any).image || '',
-      quantity: Number(item.quantity),
-      priceAtPurchase: Number(item.price),
-    }));
+    const orderItems = items.map((item: OrderItemPayload) => {
+      const itemRecord = item as Record<string, unknown>;
+      return {
+        product: item.productId,
+        productName: item.name,
+        productImage: String(itemRecord.image || ''),
+        quantity: Number(item.quantity),
+        priceAtPurchase: Number(item.price),
+      };
+    });
 
     const order = await Order.create({
       user: sessionUser.id,
