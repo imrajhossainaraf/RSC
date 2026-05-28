@@ -10,12 +10,18 @@ import HowItWorks from '@/components/HowItWorks';
 
 async function getFeaturedProducts() {
   await dbConnect();
-  return await Product.find({ featured: true }).limit(8).populate('category', 'name').lean();
+  return await Product.find({ featured: true })
+    .sort({ updatedAt: -1 })
+    .limit(16)
+    .populate('category', 'name')
+    .lean();
 }
 
 export default async function Home() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const products = (await getFeaturedProducts()) as any[];
+  const raw = (await getFeaturedProducts()) as any[];
+  const displayCount = Math.floor(Math.min(raw.length, 16) / 4) * 4;
+  const products = raw.slice(0, displayCount);
 
 
   return (
@@ -67,6 +73,7 @@ export default async function Home() {
       </section>
 
       {/* Featured Products */}
+      {products.length > 0 && (
       <section>
         <div className="section-header">
           <div>
@@ -154,6 +161,7 @@ export default async function Home() {
           ))}
         </div>
       </section>
+      )}
 
       {/* How It Works */}
       <HowItWorks />
