@@ -5,7 +5,6 @@ import dbConnect from "@/lib/mongodb";
 import Order from "@/models/Order";
 import Product from "@/models/Product";
 import User from "@/models/User";
-import nodemailer from "nodemailer";
 import { isValidObjectId, sanitizeString } from "@/lib/validation";
 
 type OrderItemPayload = {
@@ -136,75 +135,6 @@ export async function POST(req: Request) {
       items: orderItems,
       total,
     });
-
-    const emailRecipient = process.env.ADMIN_EMAILS || process.env.EMAIL_FROM;
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS && emailRecipient) {
-      try {
-        const transporter = nodemailer.createTransport({
-          service: process.env.EMAIL_SERVICE || "gmail",
-          auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
-          },
-        });
-
-        await transporter.sendMail({
-          from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-          to: emailRecipient,
-          subject: `New Order Placed - ${order._id}`,
-          html: `
-            <h1>New Order Received</h1>
-            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-            
-            <h2>Buyer Information</h2>
-            <p><strong>Name:</strong> ${sanitizeString(buyerName)}</p>
-            <p><strong>Email:</strong> ${sanitizeString(buyerEmail)}</p>
-            <p><strong>Phone:</strong> ${sanitizeString(buyerPhone)}</p>
-            
-            <h2>Shipping Address</h2>
-            <p>${sanitizeString(address)}</p>
-            <p>${sanitizeString(city)}, ${sanitizeString(zipCode)}</p>
-            
-            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-            
-            <h2>Order Details</h2>
-            <p><strong>Order ID:</strong> ${order._id}</p>
-            <p><strong>Order Date:</strong> ${new Date(order.createdAt).toLocaleString()}</p>
-            <p><strong>Total Amount:</strong> <strong style="color: #27AE60;">$${total.toFixed(2)}</strong></p>
-            
-            <h2>Items Ordered</h2>
-            <table style="border-collapse: collapse; width: 100%; margin: 15px 0;">
-              <tr style="background-color: #f5f5f5; border-bottom: 2px solid #ddd;">
-                <th style="text-align: left; padding: 12px; border: 1px solid #ddd;">Product Name</th>
-                <th style="text-align: center; padding: 12px; border: 1px solid #ddd;">Quantity</th>
-                <th style="text-align: right; padding: 12px; border: 1px solid #ddd;">Price per Unit</th>
-                <th style="text-align: right; padding: 12px; border: 1px solid #ddd;">Subtotal</th>
-              </tr>
-              ${items
-                .map(
-                  (item: OrderItemPayload) =>
-                    `<tr style="border-bottom: 1px solid #ddd;">
-                      <td style="padding: 12px; border: 1px solid #ddd;">${sanitizeString(item.name)}</td>
-                      <td style="text-align: center; padding: 12px; border: 1px solid #ddd;">${Number(item.quantity)}</td>
-                      <td style="text-align: right; padding: 12px; border: 1px solid #ddd;">$${Number(item.price).toFixed(2)}</td>
-                      <td style="text-align: right; padding: 12px; border: 1px solid #ddd;"><strong>$${(Number(item.quantity) * Number(item.price)).toFixed(2)}</strong></td>
-                    </tr>`
-                )
-                .join("")}
-              <tr style="background-color: #f9f9f9;">
-                <td colspan="3" style="text-align: right; padding: 12px; border: 1px solid #ddd; font-weight: bold;">TOTAL:</td>
-                <td style="text-align: right; padding: 12px; border: 1px solid #ddd; font-weight: bold; color: #27AE60; font-size: 18px;">$${total.toFixed(2)}</td>
-              </tr>
-            </table>
-            
-            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-            <p style="color: #666; font-size: 12px;">This is an automated email. Please do not reply directly to this address.</p>
-          `,
-        });
-      } catch (emailError) {
-        console.error("Failed to send order email, but order was created:", emailError);
-      }
-    }
 
     return NextResponse.json({ message: "Order placed successfully.", orderId: order._id }, { status: 201 });
   } catch (error) {

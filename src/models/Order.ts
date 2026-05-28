@@ -21,11 +21,12 @@ const OrderSchema = new mongoose.Schema(
     },
     items: [OrderItemSchema],
     total: { type: Number, required: true },
-    status: { 
-      type: String, 
-      enum: ['pending', 'processing', 'completed', 'cancelled'], 
-      default: 'pending' 
-    }
+    status: {
+      type: String,
+      enum: ['pending', 'processing', 'completed', 'cancelled'],
+      default: 'pending'
+    },
+    emailNotified: { type: Boolean, default: false }
   },
   { timestamps: true }
 );
