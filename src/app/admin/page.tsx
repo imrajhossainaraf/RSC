@@ -550,7 +550,7 @@ export default function AdminPage() {
             <h2>Ready to shape the hardware landscape?</h2>
             <p>
               Whether you want to invest, code, design, or manage, get in touch with our leadership team today.
-              Let's create the future of robotics together.
+              Let&apos;s create the future of robotics together.
             </p>
           </div>
           <Link href="/contact" className="btn-orange">

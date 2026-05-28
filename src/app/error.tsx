@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { ArrowPathIcon, HomeIcon } from "@heroicons/react/24/outline";
 
 export default function Error({
@@ -53,10 +54,10 @@ export default function Error({
           <ArrowPathIcon width={18} height={18} />
           Try Again
         </button>
-        <a href="/" className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+        <Link href="/" className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
           <HomeIcon width={18} height={18} />
           Go Home
-        </a>
+        </Link>
       </div>
     </div>
   );
