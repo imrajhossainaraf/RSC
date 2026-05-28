@@ -183,7 +183,7 @@ export default function Sidebar() {
               {expanded && <span className={styles.linkText}>Logout</span>}
             </button>
           ) : (
-            <Link href="/login" className={styles.link} title={!expanded ? "Login" : undefined}>
+            <Link href={`/login?callbackUrl=${encodeURIComponent(pathname)}`} className={styles.link} title={!expanded ? "Login" : undefined}>
               <span className={styles.linkIcon}>
                 <UserIcon width={22} height={22} />
               </span>

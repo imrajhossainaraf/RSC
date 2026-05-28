@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useCart } from '@/context/CartContext';
 import styles from './page.module.css';
 import { ShoppingCartIcon } from '@heroicons/react/24/solid';
+import { toast } from 'sonner';
 
 type ClientAddToCartProps = {
   product: {
@@ -18,7 +19,6 @@ type ClientAddToCartProps = {
 export default function ClientAddToCart({ product }: ClientAddToCartProps) {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
-  const [added, setAdded] = useState(false);
 
   const handleAdd = () => {
     addToCart({
@@ -28,8 +28,7 @@ export default function ClientAddToCart({ product }: ClientAddToCartProps) {
       image: product.image,
       quantity,
     });
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+    toast.success(`${product.name} added to cart`);
   };
 
   if (product.stock <= 0) {
@@ -64,7 +63,7 @@ export default function ClientAddToCart({ product }: ClientAddToCartProps) {
         style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
       >
         <ShoppingCartIcon width={20} height={20} />
-        {added ? 'Added to Cart!' : 'Add to Cart'}
+        Add to Cart
       </button>
     </div>
   );

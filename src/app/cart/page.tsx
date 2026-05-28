@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { TrashIcon } from '@heroicons/react/24/outline';
+import { toast } from 'sonner';
 import styles from './page.module.css';
 
 export default function CartPage() {
@@ -85,12 +86,15 @@ export default function CartPage() {
       if (res.ok) {
         clearCart();
         setOrderPlaced(true);
+        toast.success('Order placed successfully!');
       } else {
         const data = await res.json();
+        toast.error(data.message || 'Failed to place order');
         setError(data.message || 'Failed to place order');
       }
     } catch (fetchError) {
       console.error('Checkout error:', fetchError);
+      toast.error('An error occurred during checkout');
       setError('An error occurred during checkout');
     } finally {
       setLoading(false);
@@ -248,7 +252,7 @@ export default function CartPage() {
               </button>
             </form>
           ) : (
-            <Link href="/login">
+            <Link href="/login?callbackUrl=/cart">
               <button className={`btn-primary ${styles.checkoutBtn}`}>Login to Checkout</button>
             </Link>
           )}

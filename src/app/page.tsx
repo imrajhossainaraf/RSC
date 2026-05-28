@@ -6,6 +6,7 @@ import '@/models/Category'; // registers the Category schema so populate() works
 import styles from './page.module.css';
 import { ShoppingCartIcon, TruckIcon, SparklesIcon, ShieldCheckIcon, PhoneIcon, CpuChipIcon } from '@heroicons/react/24/outline';
 import WishlistButton from '@/components/WishlistButton';
+import HowItWorks from '@/components/HowItWorks';
 
 async function getFeaturedProducts() {
   await dbConnect();
@@ -109,6 +110,14 @@ export default async function Home() {
                     {product.name}
                   </Link>
                 </h3>
+                <div className={styles.productRating}>
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <span key={i} className={i <= Math.round(product.rating || 0) ? styles.starFilled : styles.starEmpty}>★</span>
+                  ))}
+                  {product.reviewCount > 0 && (
+                    <span className={styles.ratingCount}>({product.reviewCount})</span>
+                  )}
+                </div>
                 <div className={styles.productFooter}>
                   <div>
                     <span className={styles.price}>
@@ -145,6 +154,9 @@ export default async function Home() {
           ))}
         </div>
       </section>
+
+      {/* How It Works */}
+      <HowItWorks />
 
       {/* Features Banner */}
       <section className={styles.featuresBanner}>

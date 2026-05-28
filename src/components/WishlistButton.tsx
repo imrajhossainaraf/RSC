@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { HeartIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartSolid } from "@heroicons/react/24/solid";
+import { toast } from "sonner";
 import styles from "./WishlistButton.module.css";
 
 type Props = {
@@ -32,6 +33,11 @@ export default function WishlistButton({ productId, name, price, image, stock }:
     }
     localStorage.setItem("wishlist", JSON.stringify(updated));
     setSaved(!saved);
+    if (saved) {
+      toast.info(`${name} removed from wishlist`);
+    } else {
+      toast.success(`${name} added to wishlist`);
+    }
   };
 
   return (

@@ -5,6 +5,7 @@ import dbConnect from '@/lib/mongodb';
 import Product from '@/models/Product';
 import ClientAddToCart from './ClientAddToCart';
 import WishlistButton from '@/components/WishlistButton';
+import RatingSection from './RatingSection';
 import styles from './page.module.css';
 import {
   ShoppingCartIcon
@@ -14,11 +15,11 @@ export const revalidate = 60; // revalidate every 60 seconds
 
 async function getRelatedProducts(categoryId: string, currentProductId: string) {
   try {
-    return await Product.find({ 
-      category: categoryId, 
-      _id: { $ne: currentProductId } 
+    return await Product.find({
+      category: categoryId,
+      _id: { $ne: currentProductId }
     }).limit(4).lean();
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -31,7 +32,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   let product = null;
   try {
     product = await Product.findById(id).populate('category', 'name slug').lean();
-  } catch (e) {
+  } catch {
     return notFound();
   }
 
@@ -44,7 +45,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const discountedPrice = product.price - (product.price * (product.discount / 100));
 
   // Transform specs map to object/entries safely
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const specMap = product.specs instanceof Map ? Object.fromEntries(product.specs) : (product.specs || {});
   const specsEntries = Object.entries(specMap);
 
@@ -85,7 +85,12 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           
           {product.reviewCount > 0 && (
             <div className={styles.ratingRow}>
-              <span className={styles.stars}>★ {product.rating.toFixed(1)}</span>
+              <div className={styles.stars}>
+                {[1, 2, 3, 4, 5].map(i => (
+                  <span key={i} style={{ color: i <= Math.round(product.rating) ? '#fbbf24' : '#e2e8f0' }}>★</span>
+                ))}
+              </div>
+              <span className={styles.ratingValue}>{product.rating.toFixed(1)}</span>
               <span className={styles.reviewCount}>({product.reviewCount} customer reviews)</span>
             </div>
           )}
@@ -152,6 +157,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </table>
         </section>
       )}
+
+      {/* Ratings & Reviews */}
+      <RatingSection productId={product._id.toString()} />
 
       {/* Related Products */}
       {related.length > 0 && (

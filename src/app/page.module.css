@@ -225,6 +225,29 @@
   color: var(--primary);
 }
 
+.productRating {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  margin-bottom: 0.5rem;
+}
+
+.starFilled {
+  color: #fbbf24;
+  font-size: 0.95rem;
+}
+
+.starEmpty {
+  color: #e2e8f0;
+  font-size: 0.95rem;
+}
+
+.ratingCount {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  margin-left: 6px;
+}
+
 .productFooter {
   display: flex;
   align-items: center;
