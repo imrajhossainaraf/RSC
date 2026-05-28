@@ -10,7 +10,7 @@ import {
   HomeIcon,
   ShoppingCartIcon,
   UserIcon,
-  ShieldCheckIcon,
+  ShareIcon,
   ArrowRightOnRectangleIcon,
   WrenchScrewdriverIcon,
   HeartIcon,
@@ -76,7 +76,7 @@ export default function Sidebar() {
     { name: "Cart", href: "/cart", icon: ShoppingCartIcon, badge: totalItems },
     { name: "Wishlist", href: "/wishlist", icon: HeartIcon, authOnly: true },
     { name: "Profile", href: "/profile", icon: UserIcon, authOnly: true },
-    { name: "Admin", href: "/admin", icon: ShieldCheckIcon, adminOnly: true },
+    { name: "Share & Careers", href: "/admin", icon: ShareIcon },
     { name: "Contact", href: "/contact", icon: PhoneIcon },
   ];
 

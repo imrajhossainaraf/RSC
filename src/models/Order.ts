@@ -5,7 +5,7 @@ const OrderItemSchema = new mongoose.Schema({
   productName: { type: String, required: true },
   productImage: { type: String, required: false },
   quantity: { type: Number, required: true, min: 1 },
-  priceAtPurchase: { type: Number, required: true }
+  priceAtPurchase: { type: Number, required: true, min: 0 },
 });
 
 const OrderSchema = new mongoose.Schema(
@@ -17,18 +17,23 @@ const OrderSchema = new mongoose.Schema(
       phone: { type: String, required: true },
       address: { type: String, required: true },
       city: { type: String, required: true },
-      zipCode: { type: String, required: true }
+      zipCode: { type: String, required: true },
     },
     items: [OrderItemSchema],
-    total: { type: Number, required: true },
+    total: { type: Number, required: true, min: 0 },
     status: {
       type: String,
       enum: ['pending', 'processing', 'completed', 'cancelled'],
-      default: 'pending'
+      default: 'pending',
     },
-    emailNotified: { type: Boolean, default: false }
+    emailNotified: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
+
+OrderSchema.index({ user: 1, createdAt: -1 });
+OrderSchema.index({ status: 1 });
+OrderSchema.index({ emailNotified: 1 });
+OrderSchema.index({ createdAt: -1 });
 
 export default mongoose.models.Order || mongoose.model('Order', OrderSchema);

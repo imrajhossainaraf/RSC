@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { sendMail } from "@/lib/mailer";
 import dbConnect from "@/lib/mongodb";
 import Order from "@/models/Order";
 
@@ -43,11 +43,9 @@ function buildOrderBlock(order: PopulatedOrder, index: number): string {
       <p style="margin:4px 0;font-size:13px;color:#555;">
         Placed: ${new Date(order.createdAt).toLocaleString()}
       </p>
-
       <h4 style="margin:16px 0 6px;">Buyer</h4>
       <p style="margin:2px 0;">${order.buyerDetails.name} &bull; ${order.buyerDetails.email} &bull; ${order.buyerDetails.phone}</p>
       <p style="margin:2px 0;">${order.buyerDetails.address}, ${order.buyerDetails.city} ${order.buyerDetails.zipCode}</p>
-
       <h4 style="margin:16px 0 6px;">Items</h4>
       <table style="border-collapse:collapse;width:100%;">
         <tr style="background:#f5f5f5;">
@@ -73,14 +71,16 @@ export async function GET(req: Request) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const emailRecipient = process.env.ADMIN_EMAILS || process.env.EMAIL_FROM;
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || !emailRecipient) {
+  const adminRecipient = (process.env.ADMIN_EMAILS || "").split(",")[0].trim();
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || !adminRecipient) {
     return NextResponse.json({ message: "Email not configured" }, { status: 500 });
   }
 
   await dbConnect();
 
-  const pendingOrders = await Order.find({ emailNotified: false }).sort({ createdAt: 1 }).lean<PopulatedOrder[]>();
+  const pendingOrders = await Order.find({ emailNotified: false })
+    .sort({ createdAt: 1 })
+    .lean<PopulatedOrder[]>();
 
   if (!pendingOrders.length) {
     return NextResponse.json({ message: "No new orders to notify." });
@@ -94,25 +94,15 @@ export async function GET(req: Request) {
       <h1 style="border-bottom:2px solid #27AE60;padding-bottom:12px;">Order Digest</h1>
       <p style="font-size:15px;">
         <strong>${pendingOrders.length} new order${pendingOrders.length > 1 ? "s" : ""}</strong>
-        received in the last 2 hours.
-        Combined total: <strong style="color:#27AE60;">$${grandTotal.toFixed(2)}</strong>
+        received. Combined total: <strong style="color:#27AE60;">$${grandTotal.toFixed(2)}</strong>
       </p>
       ${orderBlocks}
       <hr style="border:none;border-top:1px solid #ddd;margin:30px 0;">
       <p style="color:#999;font-size:12px;">Automated digest — do not reply.</p>
     </div>`;
 
-  const transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
-  await transporter.sendMail({
-    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-    to: emailRecipient,
+  await sendMail({
+    to: adminRecipient,
     subject: `Order Digest — ${pendingOrders.length} new order${pendingOrders.length > 1 ? "s" : ""} ($${grandTotal.toFixed(2)})`,
     html,
   });

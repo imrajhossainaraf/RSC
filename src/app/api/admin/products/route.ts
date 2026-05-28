@@ -22,6 +22,7 @@ export async function POST(req: Request) {
     const price = Number(payload.price);
     const discount = Number(payload.discount) || 0;
     const stock = Number(payload.stock) || 0;
+    const featured = Boolean(payload.featured);
 
     if (!name || !description || !image || !categoryInput || price <= 0) {
       return NextResponse.json({ message: "Invalid product data." }, { status: 400 });
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
       stock,
       image,
       category: categoryId,
+      featured,
     });
 
     return NextResponse.json({ message: "Product created successfully.", product }, { status: 201 });

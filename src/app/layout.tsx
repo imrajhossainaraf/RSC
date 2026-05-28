@@ -16,28 +16,58 @@ const inter = Inter({
   display: "swap",
 });
 
+const BASE_URL = "https://roboticsshopctg.com";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(BASE_URL),
   title: {
     default: "Robotics Shop CTG — Electronics & Components",
     template: "%s | Robotics Shop CTG",
   },
   description:
-    "Robotics Shop CTG — Your trusted source for electronic components, development boards, drones, IoT devices, power systems, and professional robotics services in Chittagong.",
+    "Robotics Shop CTG — Your trusted source for electronic components, development boards, Arduino, Raspberry Pi, drones, IoT devices, sensors, and robotics services in Chittagong, Bangladesh.",
   keywords: [
-    "electronics",
-    "robotics",
-    "components",
-    "Arduino",
-    "Raspberry Pi",
-    "drones",
+    "electronics shop Chittagong",
+    "robotics components Bangladesh",
+    "Arduino Bangladesh",
+    "Raspberry Pi Bangladesh",
+    "ESP32",
     "sensors",
-    "Chittagong",
-    "Bangladesh",
+    "motor driver",
+    "IoT devices",
+    "drone parts",
+    "electronics Chittagong",
   ],
+  authors: [{ name: "Robotics Shop CTG" }],
+  creator: "Robotics Shop CTG",
+  publisher: "Robotics Shop CTG",
+  alternates: { canonical: BASE_URL },
   openGraph: {
-    title: "Robotics Shop CTG",
-    description: "Premium electronic components and robotics supplies.",
+    title: "Robotics Shop CTG — Electronics & Components",
+    description: "Premium electronic components, development boards, sensors, and robotics supplies in Chittagong, Bangladesh.",
+    url: BASE_URL,
+    siteName: "Robotics Shop CTG",
+    images: [
+      {
+        url: "/images/ChatGPT Image May 28, 2026, 09_02_11 PM.png",
+        width: 512,
+        height: 512,
+        alt: "Robotics Shop CTG Logo",
+      },
+    ],
     type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary",
+    title: "Robotics Shop CTG — Electronics & Components",
+    description: "Premium electronic components and robotics supplies in Chittagong, Bangladesh.",
+    images: ["/images/ChatGPT Image May 28, 2026, 09_02_11 PM.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
   },
 };
 

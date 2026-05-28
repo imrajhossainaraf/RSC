@@ -11,7 +11,42 @@ import {
   ShoppingCartIcon
 } from '@heroicons/react/24/outline';
 
-export const revalidate = 60; // revalidate every 60 seconds
+import type { Metadata } from "next";
+
+export const revalidate = 60;
+
+const BASE_URL = "https://roboticsshopctg.com";
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+  await dbConnect();
+  const { id } = await params;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const product = await Product.findById(id).populate("category", "name").lean() as any;
+    if (!product) return {};
+    const price = (product.price - product.price * (product.discount / 100)).toFixed(2);
+    const title = product.name;
+    const description = `${product.description.slice(0, 155)}…`;
+    return {
+      title,
+      description,
+      alternates: { canonical: `${BASE_URL}/products/${id}` },
+      openGraph: {
+        title,
+        description,
+        url: `${BASE_URL}/products/${id}`,
+        type: "website",
+        images: product.image ? [{ url: product.image, alt: product.name }] : [],
+      },
+      twitter: { card: "summary_large_image", title, description, images: product.image ? [product.image] : [] },
+      other: { price },
+    };
+  } catch {
+    return {};
+  }
+}
 
 async function getRelatedProducts(categoryId: string, currentProductId: string) {
   try {
@@ -48,8 +83,37 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const specMap = product.specs instanceof Map ? Object.fromEntries(product.specs) : (product.specs || {});
   const specsEntries = Object.entries(specMap);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: product.image,
+    sku: product._id.toString(),
+    brand: { "@type": "Brand", name: "Robotics Shop CTG" },
+    offers: {
+      "@type": "Offer",
+      url: `${BASE_URL}/products/${product._id}`,
+      priceCurrency: "USD",
+      price: discountedPrice.toFixed(2),
+      availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      seller: { "@type": "Organization", name: "Robotics Shop CTG" },
+    },
+    ...(product.reviewCount > 0 && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: product.rating.toFixed(1),
+        reviewCount: product.reviewCount,
+      },
+    }),
+  };
+
   return (
     <div className={styles.detailContainer}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Breadcrumbs */}
       <div className={styles.breadcrumbs}>
         <Link href="/">Home</Link>

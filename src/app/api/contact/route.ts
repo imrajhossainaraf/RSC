@@ -1,38 +1,32 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
-import nodemailer from 'nodemailer';
+import { sendMail } from '@/lib/mailer';
+import { sanitizeString, normalizeEmail } from '@/lib/validation';
 
 export async function POST(request: Request) {
   try {
     await dbConnect();
-    const { name, email, subject, message } = await request.json();
+    const body = await request.json() as Record<string, unknown>;
+    const name = sanitizeString(body.name);
+    const email = normalizeEmail(String(body.email ?? ""));
+    const subject = sanitizeString(body.subject);
+    const message = sanitizeString(body.message);
 
     if (!name || !email || !subject || !message) {
       return NextResponse.json({ message: 'All fields are required' }, { status: 400 });
     }
 
-    console.log(`[Contact Submission] From: ${name} <${email}>. Subject: ${subject}. Message: ${message}`);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ message: 'Invalid email address.' }, { status: 400 });
+    }
 
-    const emailRecipient = process.env.ADMIN_EMAILS || process.env.EMAIL_FROM;
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS && emailRecipient) {
-      try {
-        const transporter = nodemailer.createTransport({
-          service: process.env.EMAIL_SERVICE || "gmail",
-          auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
-          },
-        });
-
-        await transporter.sendMail({
-          from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-          to: emailRecipient,
-          subject: `Contact Form: ${subject}`,
-          text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
-        });
-      } catch (mailError) {
-        console.warn("Mail dispatch skipped/failed:", mailError);
-      }
+    const adminRecipient = (process.env.ADMIN_EMAILS || "").split(",")[0].trim();
+    if (adminRecipient) {
+      await sendMail({
+        to: adminRecipient,
+        subject: `Contact Form: ${subject}`,
+        text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
+      });
     }
 
     return NextResponse.json({ message: 'Message sent successfully' }, { status: 201 });

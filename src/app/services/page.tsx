@@ -1,4 +1,18 @@
+import type { Metadata } from "next";
 import styles from './page.module.css';
+
+export const metadata: Metadata = {
+  title: "Services — Custom Robotics & Electronics",
+  description:
+    "Robotics Shop CTG offers custom PCB design, firmware development, IoT integration, drone assembly, and electronics repair services in Chittagong, Bangladesh.",
+  alternates: { canonical: "https://roboticsshopctg.com/services" },
+  openGraph: {
+    title: "Services — Robotics Shop CTG",
+    description: "Custom PCB design, firmware development, IoT integration, and drone assembly in Chittagong.",
+    url: "https://roboticsshopctg.com/services",
+    type: "website",
+  },
+};
 import { 
   WrenchScrewdriverIcon, 
   CpuChipIcon, 

@@ -105,6 +105,14 @@ export const authOptions: NextAuthOptions = {
         typedToken.id = typedUser.id ?? typedToken.id;
       }
 
+      // Dynamically override role if email is in ADMIN_EMAILS
+      if (typedToken.email) {
+        const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map((e) => e.trim().toLowerCase());
+        if (adminEmails.includes(String(typedToken.email).toLowerCase())) {
+          typedToken.role = "admin";
+        }
+      }
+
       // Ensure OAuth users receive the MongoDB user id in the token when possible
       if (!isValidObjectId(typedToken.id) && typedToken.email) {
         try {

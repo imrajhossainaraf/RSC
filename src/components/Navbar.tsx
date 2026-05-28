@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MagnifyingGlassIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
@@ -31,10 +32,15 @@ export default function Navbar() {
     <header className={`${styles.header} ${scrolled ? styles.scrolled : ""}`}>
       <div className={styles.logoContainer}>
         <Link href="/" className={styles.logo}>
-          <span className={styles.logoIcon}>🛍️</span>
+          <Image
+              src="/images/ChatGPT Image May 28, 2026, 09_02_11 PM.png"
+              alt="Robotics Shop CTG logo"
+              width={64}
+              height={64}
+              className={styles.logoIcon}
+            />
           <div className={styles.logoText}>
-            <span className={styles.logoMain}>Buy as good</span>
-            <span className={styles.logoSub}>Desire</span>
+            <span className={styles.logoMain}>Robotics Shop CTG</span>
           </div>
         </Link>
       </div>

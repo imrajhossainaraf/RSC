@@ -5,29 +5,26 @@ import dbConnect from "@/lib/mongodb";
 import Order from "@/models/Order";
 import Product from "@/models/Product";
 import User from "@/models/User";
+import { sendMail } from "@/lib/mailer";
 import { isValidObjectId, sanitizeString } from "@/lib/validation";
 
 type OrderItemPayload = {
   productId: string;
   name: string;
-  price: number;
   quantity: number;
-};
-
-type BuyerDetailsPayload = {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  zipCode: string;
-};
-
-type ProductDocument = {
-  stock: number;
-  name: string;
   image?: string;
-  save: () => Promise<unknown>;
+};
+
+type BuyerDetailsPayload = Record<string, unknown>;
+
+type ProductDoc = {
+  _id: { toString(): string };
+  name: string;
+  price: number;
+  discount: number;
+  stock: number;
+  image?: string;
+  save(): Promise<unknown>;
 };
 
 export async function POST(req: Request) {
@@ -42,9 +39,7 @@ export async function POST(req: Request) {
     if (!isValidObjectId(sessionUser.id) && sessionUser.email) {
       await dbConnect();
       const existingUser = await User.findOne({ email: sessionUser.email });
-      if (existingUser) {
-        sessionUser.id = existingUser._id.toString();
-      }
+      if (existingUser) sessionUser.id = existingUser._id.toString();
     }
 
     if (!isValidObjectId(sessionUser.id)) {
@@ -52,9 +47,8 @@ export async function POST(req: Request) {
     }
 
     const payload = (await req.json()) as Record<string, unknown>;
-    const items = Array.isArray(payload.items) ? payload.items : [];
-    const buyerDetails = (payload.buyerDetails as Record<string, unknown> | undefined) ?? {};
-    const total = Number(payload.total) || 0;
+    const items = Array.isArray(payload.items) ? (payload.items as OrderItemPayload[]) : [];
+    const buyerDetails = (payload.buyerDetails as BuyerDetailsPayload | undefined) ?? {};
 
     if (!items.length) {
       return NextResponse.json({ message: "Cart is empty." }, { status: 400 });
@@ -79,20 +73,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Invalid phone number." }, { status: 400 });
     }
 
-    if (total <= 0) {
-      return NextResponse.json({ message: "Invalid order total." }, { status: 400 });
-    }
-
     await dbConnect();
 
-    const productsToUpdate: Array<{ product: ProductDocument; quantity: number }> = [];
+    // Fetch products and validate stock — total is recalculated server-side
+    const productsToUpdate: Array<{ product: ProductDoc; quantity: number }> = [];
 
     for (const item of items) {
       if (!item || !isValidObjectId(item.productId) || Number(item.quantity) <= 0) {
         return NextResponse.json({ message: "Invalid cart item." }, { status: 400 });
       }
-
-      const product = await Product.findById(item.productId);
+      const product = await Product.findById(item.productId) as ProductDoc | null;
       if (!product) {
         return NextResponse.json({ message: `Product "${sanitizeString(item.name)}" not found.` }, { status: 404 });
       }
@@ -102,39 +92,45 @@ export async function POST(req: Request) {
           { status: 400 }
         );
       }
-
       productsToUpdate.push({ product, quantity: item.quantity });
     }
 
-    for (const update of productsToUpdate) {
-      update.product.stock -= update.quantity;
-      await update.product.save();
+    // Deduct stock
+    for (const { product, quantity } of productsToUpdate) {
+      product.stock -= quantity;
+      await product.save();
     }
 
-    const orderItems = items.map((item: OrderItemPayload) => {
-      const itemRecord = item as Record<string, unknown>;
+    // Build order items with server-side prices
+    const orderItems = productsToUpdate.map(({ product, quantity }) => {
+      const effectivePrice = product.price - (product.price * (product.discount / 100));
       return {
-        product: item.productId,
-        productName: item.name,
-        productImage: String(itemRecord.image || ''),
-        quantity: Number(item.quantity),
-        priceAtPurchase: Number(item.price),
+        product: product._id,
+        productName: product.name,
+        productImage: product.image ?? "",
+        quantity,
+        priceAtPurchase: parseFloat(effectivePrice.toFixed(2)),
       };
     });
 
+    // Calculate total server-side — never trust client total
+    const serverTotal = parseFloat(
+      orderItems.reduce((sum, i) => sum + i.priceAtPurchase * i.quantity, 0).toFixed(2)
+    );
+
     const order = await Order.create({
       user: sessionUser.id,
-      buyerDetails: {
-        name: buyerName,
-        email: buyerEmail,
-        phone: buyerPhone,
-        address,
-        city,
-        zipCode,
-      },
+      buyerDetails: { name: buyerName, email: buyerEmail, phone: buyerPhone, address, city, zipCode },
       items: orderItems,
-      total,
+      total: serverTotal,
     });
+
+    // Send order confirmation to customer (non-blocking)
+    sendMail({
+      to: buyerEmail,
+      subject: `Order Confirmed — Robotics Shop CTG (#${order._id})`,
+      html: buildConfirmationEmail(buyerName, order._id.toString(), orderItems, serverTotal),
+    }).catch((err) => console.warn("Order confirmation email failed:", err));
 
     return NextResponse.json({ message: "Order placed successfully.", orderId: order._id }, { status: 201 });
   } catch (error) {
@@ -146,35 +142,90 @@ export async function POST(req: Request) {
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
+    if (!session?.user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     await dbConnect();
 
-    const sessionUser = session.user as { id?: string; role?: string } | undefined;
-    const userRole = sessionUser?.role;
-    const userId = sessionUser?.id;
+    const sessionUser = session.user as { id?: string; role?: string };
 
-    let orders;
-    if (userRole === "admin") {
-      orders = await Order.find({})
+    if (sessionUser.role === "admin") {
+      const orders = await Order.find({})
         .populate("user", "name email")
         .populate("items.product")
         .sort({ createdAt: -1 });
-    } else {
-      if (!isValidObjectId(userId)) {
-        // If the session contains a non-ObjectId id (e.g. from an OAuth provider),
-        // attempt to avoid a CastError by returning an empty list instead of throwing.
-        return NextResponse.json([]);
-      }
-
-      orders = await Order.find({ user: userId }).populate("items.product").sort({ createdAt: -1 });
+      return NextResponse.json(orders);
     }
+
+    if (!isValidObjectId(sessionUser.id)) {
+      return NextResponse.json([]);
+    }
+
+    const orders = await Order.find({ user: sessionUser.id })
+      .populate("items.product")
+      .sort({ createdAt: -1 });
 
     return NextResponse.json(orders);
   } catch (error) {
     console.error("Error fetching orders:", error);
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
+}
+
+function buildConfirmationEmail(
+  name: string,
+  orderId: string,
+  items: { productName: string; quantity: number; priceAtPurchase: number }[],
+  total: number
+): string {
+  const rows = items
+    .map(
+      (i) => `<tr>
+        <td style="padding:10px;border:1px solid #e2e8f0;">${i.productName}</td>
+        <td style="padding:10px;border:1px solid #e2e8f0;text-align:center;">${i.quantity}</td>
+        <td style="padding:10px;border:1px solid #e2e8f0;text-align:right;">$${i.priceAtPurchase.toFixed(2)}</td>
+        <td style="padding:10px;border:1px solid #e2e8f0;text-align:right;font-weight:bold;">$${(i.quantity * i.priceAtPurchase).toFixed(2)}</td>
+      </tr>`
+    )
+    .join("");
+
+  return `
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#1e293b;">
+      <div style="background:#7c3aed;padding:24px 32px;border-radius:8px 8px 0 0;">
+        <h1 style="color:white;margin:0;font-size:1.5rem;">Order Confirmed!</h1>
+      </div>
+      <div style="padding:32px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;">
+        <p>Hi <strong>${name}</strong>, thank you for your order!</p>
+        <p style="color:#64748b;font-size:0.9rem;">Order ID: <code>${orderId}</code></p>
+
+        <table style="border-collapse:collapse;width:100%;margin:24px 0;">
+          <thead>
+            <tr style="background:#f8fafc;">
+              <th style="padding:10px;border:1px solid #e2e8f0;text-align:left;">Product</th>
+              <th style="padding:10px;border:1px solid #e2e8f0;">Qty</th>
+              <th style="padding:10px;border:1px solid #e2e8f0;text-align:right;">Unit Price</th>
+              <th style="padding:10px;border:1px solid #e2e8f0;text-align:right;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+          <tfoot>
+            <tr style="background:#f8fafc;">
+              <td colspan="3" style="padding:12px;border:1px solid #e2e8f0;text-align:right;font-weight:bold;">TOTAL</td>
+              <td style="padding:12px;border:1px solid #e2e8f0;text-align:right;font-weight:bold;color:#7c3aed;font-size:1.1rem;">$${total.toFixed(2)}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <p style="color:#64748b;font-size:0.85rem;">
+          We'll process your order shortly. You can track it in your
+          <a href="${process.env.NEXTAUTH_URL || ""}/profile" style="color:#7c3aed;">profile page</a>.
+        </p>
+
+        <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0;">
+        <p style="color:#94a3b8;font-size:0.75rem;margin:0;">
+          Robotics Shop CTG — Electronics &amp; Components, Chittagong, Bangladesh
+        </p>
+      </div>
+    </div>`;
 }
