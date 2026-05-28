@@ -41,6 +41,8 @@ export const metadata: Metadata = {
   },
 };
 
+import Navbar from "@/components/Navbar";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -50,6 +52,7 @@ export default function RootLayout({
     <html lang="en" className={`${outfit.variable} ${inter.variable}`}>
       <body>
         <Providers>
+          <Navbar />
           <div className="app-container">
             <Sidebar />
             <main className="main-content">{children}</main>

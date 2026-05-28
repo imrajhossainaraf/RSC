@@ -7,8 +7,7 @@
 .cartHeader {
   font-size: 2.5rem;
   font-weight: 800;
-  color: var(--primary);
-  text-shadow: var(--shadow-glow);
+  color: var(--foreground);
 }
 
 .cartLayout {
@@ -32,14 +31,17 @@
   padding: 1.5rem;
   border-radius: var(--radius-md);
   position: relative;
+  box-shadow: var(--shadow-card);
 }
 
 .itemImage {
   width: 100px;
   height: 100px;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 10px;
   border-radius: var(--radius-sm);
-  background: var(--secondary);
+  background: #f8fafc;
+  border: 1px solid var(--border);
 }
 
 .itemInfo {
@@ -65,6 +67,7 @@
   align-items: center;
   gap: 10px;
   background: var(--secondary);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 4px 8px;
   width: fit-content;
@@ -82,7 +85,7 @@
   top: 1.5rem;
   right: 1.5rem;
   background: transparent;
-  color: var(--accent);
+  color: #ef4444; /* red for delete */
   transition: opacity 0.2s;
   padding: 5px;
 }
@@ -102,6 +105,7 @@
   gap: 1.5rem;
   position: sticky;
   top: 2rem;
+  box-shadow: var(--shadow-card);
 }
 
 .summary h2 {
@@ -114,7 +118,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 1.1rem;
-  color: #a0aec0;
+  color: #64748b;
 }
 
 .summaryTotal {
@@ -133,12 +137,26 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+  color: white;
+  padding: 14px 24px;
+  border-radius: var(--radius-full);
+  font-size: 1rem;
+  font-weight: 600;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: var(--shadow-glow);
+}
+
+.checkoutBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
 }
 
 .emptyCart {
   text-align: center;
   padding: 5rem 0;
-  color: #a0aec0;
+  color: #64748b;
   font-size: 1.2rem;
   background: var(--card-bg);
   border-radius: var(--radius-lg);
@@ -161,7 +179,7 @@
 
 .formGroup label {
   font-size: 0.9rem;
-  color: #a0aec0;
+  color: #475569;
 }
 
 @media (max-width: 900px) {

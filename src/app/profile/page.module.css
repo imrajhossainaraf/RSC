@@ -27,7 +27,7 @@
   right: -150px;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(0, 210, 255, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
   z-index: 0;
   pointer-events: none;
 }
@@ -58,7 +58,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #a0aec0;
+  color: #64748b;
 }
 
 .badgeRow {
@@ -78,16 +78,16 @@
 }
 
 .userBadge {
-  background: rgba(160, 174, 192, 0.1);
-  color: #a0aec0;
-  border: 1px solid rgba(160, 174, 192, 0.2);
+  background: rgba(100, 116, 139, 0.1);
+  color: #64748b;
+  border: 1px solid rgba(100, 116, 139, 0.2);
 }
 
 .adminBadge {
-  background: rgba(0, 210, 255, 0.1);
+  background: var(--primary-dim);
   color: var(--primary);
-  border: 1px solid rgba(0, 210, 255, 0.3);
-  box-shadow: 0 0 10px rgba(0, 210, 255, 0.1);
+  border: 1px solid var(--primary-glow);
+  box-shadow: 0 0 10px var(--primary-dim);
 }
 
 .profileDetails {
@@ -101,17 +101,14 @@
 .userName {
   font-size: 2.2rem;
   font-weight: 800;
-  color: #fff;
-  background: linear-gradient(to right, #fff, #a0aec0);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #0f172a;
 }
 
 .detailRow {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #a0aec0;
+  color: #475569;
   font-size: 1rem;
 }
 
@@ -126,9 +123,9 @@
 }
 
 .btnLogout {
-  background: rgba(255, 0, 127, 0.08);
-  color: var(--accent);
-  border: 1px solid rgba(255, 0, 127, 0.25);
+  background: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fee2e2;
   padding: 10px 20px;
   border-radius: var(--radius-full);
   font-weight: 600;
@@ -139,9 +136,8 @@
 }
 
 .btnLogout:hover {
-  background: var(--accent);
-  color: #fff;
-  box-shadow: 0 0 15px rgba(255, 0, 127, 0.3);
+  background: #fee2e2;
+  color: #b91c1c;
   transform: translateY(-1px);
 }
 
@@ -151,7 +147,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 2.5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
 .sectionTitle {
@@ -161,7 +157,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #fff;
+  color: #0f172a;
   border-bottom: 1px solid var(--border);
   padding-bottom: 1rem;
 }
@@ -185,8 +181,8 @@
 }
 
 .orderCard:hover {
-  border-color: rgba(0, 210, 255, 0.3);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-color: var(--primary-glow);
+  box-shadow: var(--shadow-card);
 }
 
 .orderHeader {
@@ -206,13 +202,13 @@
 
 .orderId {
   font-weight: 700;
-  color: #fff;
+  color: #1e293b;
   font-size: 1.05rem;
 }
 
 .orderDate {
   font-size: 0.85rem;
-  color: #718096;
+  color: #64748b;
 }
 
 .headerMeta {
@@ -236,31 +232,31 @@
 
 .pending {
   background: rgba(251, 191, 36, 0.1);
-  color: #fbbf24;
+  color: #d97706;
   border: 1px solid rgba(251, 191, 36, 0.2);
 }
 
 .processing {
   background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  color: #2563eb;
   border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .completed {
   background: rgba(52, 168, 83, 0.1);
-  color: #34A853;
+  color: #16a34a;
   border: 1px solid rgba(52, 168, 83, 0.2);
 }
 
 .cancelled {
   background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  color: #dc2626;
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .expandBtn {
   background: transparent;
-  color: #a0aec0;
+  color: #94a3b8;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -268,14 +264,14 @@
 }
 
 .expandBtn:hover {
-  color: #fff;
+  color: var(--primary);
 }
 
 /* Expandable Details Container */
 .orderDetails {
   padding: 1.5rem;
   border-top: 1px solid var(--border);
-  background: rgba(15, 17, 21, 0.3);
+  background: #f8fafc;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -292,12 +288,12 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #718096;
+  color: #64748b;
   margin-bottom: 0.6rem;
 }
 
 .shippingSection p, .paymentSection p {
-  color: #e2e8f0;
+  color: #1e293b;
   font-size: 0.95rem;
   line-height: 1.4;
 }
@@ -305,14 +301,15 @@
 .orderFullId {
   margin-top: 0.5rem;
   font-size: 0.8rem;
-  color: #718096;
+  color: #64748b;
 }
 
 .orderFullId code {
-  color: #a0aec0;
-  background: var(--secondary);
+  color: #475569;
+  background: var(--card-bg);
   padding: 2px 6px;
   border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
 }
 
 /* Order Item Row styling */
@@ -332,7 +329,7 @@
   align-items: center;
   gap: 1rem;
   padding: 8px 12px;
-  background: var(--secondary);
+  background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
@@ -340,14 +337,17 @@
 .itemImage {
   width: 50px;
   height: 50px;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 4px;
+  background: #fff;
   border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
 }
 
 .itemImagePlaceholder {
   width: 50px;
   height: 50px;
-  background: var(--card-bg);
+  background: var(--secondary);
   border-radius: var(--radius-sm);
 }
 
@@ -360,18 +360,18 @@
 
 .itemMeta .itemName {
   font-weight: 600;
-  color: #fff;
+  color: #0f172a;
   font-size: 0.95rem;
 }
 
 .itemMeta .itemPrice {
   font-size: 0.85rem;
-  color: #a0aec0;
+  color: #64748b;
 }
 
 .itemSubtotal {
   font-weight: 700;
-  color: #fff;
+  color: #0f172a;
   font-size: 1rem;
 }
 
@@ -379,7 +379,7 @@
 .emptyOrders {
   text-align: center;
   padding: 3rem;
-  color: #a0aec0;
+  color: #64748b;
 }
 
 .emptyOrders p {
@@ -393,7 +393,7 @@
   justify-content: center;
   gap: 1rem;
   padding: 4rem 2rem;
-  color: #a0aec0;
+  color: #64748b;
 }
 
 /* Dynamic Spinners */

@@ -7,8 +7,7 @@
 .header {
   font-size: 2.5rem;
   font-weight: 800;
-  color: var(--primary);
-  text-shadow: var(--shadow-glow);
+  color: #0f172a;
 }
 
 .statsGrid {
@@ -26,19 +25,27 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.statCard:hover {
+  border-color: var(--primary-glow);
+  box-shadow: var(--shadow-glow);
 }
 
 .statValue {
   font-size: 2.5rem;
   font-weight: 700;
-  color: var(--foreground);
+  color: var(--primary);
 }
 
 .statLabel {
-  color: #a0aec0;
+  color: #64748b;
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 1px;
+  font-weight: 600;
 }
 
 .adminSection {
@@ -47,12 +54,14 @@
   border-radius: var(--radius-lg);
   padding: 2rem;
   margin-top: 1rem;
+  box-shadow: var(--shadow-card);
 }
 
 .adminSection h2 {
   margin-bottom: 1.5rem;
   border-bottom: 1px solid var(--border);
   padding-bottom: 0.5rem;
+  color: #0f172a;
 }
 
 .formGroup {
@@ -64,9 +73,26 @@
 
 .formGroup label {
   font-size: 0.9rem;
-  color: #a0aec0;
+  color: #475569;
+  font-weight: 500;
 }
 
 .submitBtn {
   margin-top: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+  color: #fff;
+  padding: 11px 22px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: var(--shadow-glow);
+}
+
+.submitBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
 }

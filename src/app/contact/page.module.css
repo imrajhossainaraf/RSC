@@ -19,10 +19,11 @@
   font-size: 2.8rem;
   font-weight: 800;
   line-height: 1.2;
+  color: #0f172a;
 }
 
 .subtext {
-  color: #94a3b8;
+  color: #64748b;
   font-size: 1.1rem;
   line-height: 1.6;
 }
@@ -37,13 +38,16 @@
 .formSection {
   padding: 3rem;
   border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-card);
 }
 
 .formSection h2 {
   font-size: 1.5rem;
   font-weight: 800;
   margin-bottom: 2rem;
-  color: #f1f5f9;
+  color: #0f172a;
 }
 
 .contactForm {
@@ -61,23 +65,31 @@
 .formGroup label {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #94a3b8;
+  color: #475569;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .successMsg {
-  color: #10b981;
+  color: #16a34a;
   font-size: 0.9rem;
   font-weight: 600;
   margin-top: 0.5rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
 }
 
 .errorMsg {
-  color: var(--accent);
+  color: #dc2626;
   font-size: 0.9rem;
   font-weight: 600;
   margin-top: 0.5rem;
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
 }
 
 .infoAside {
@@ -89,17 +101,20 @@
 .infoCard {
   padding: 2.5rem;
   border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-card);
 }
 
 .infoCard h3 {
   font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  color: #f1f5f9;
+  color: #0f172a;
 }
 
 .infoCard p {
-  color: #94a3b8;
+  color: #64748b;
   font-size: 0.95rem;
   line-height: 1.6;
 }
@@ -112,12 +127,13 @@
 
 .mapPlaceholder {
   height: 250px;
-  background: #12161f;
+  background: #f1f5f9;
   border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #475569;
+  color: #94a3b8;
   font-weight: 700;
   font-size: 0.9rem;
   text-transform: uppercase;

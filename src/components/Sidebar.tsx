@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -12,33 +13,15 @@ import {
   ShieldCheckIcon,
   ArrowRightOnRectangleIcon,
   WrenchScrewdriverIcon,
-  PhoneIcon,
   HeartIcon,
   Squares2X2Icon,
-  CpuChipIcon,
-  CommandLineIcon,
-  CubeTransparentIcon,
-  TruckIcon,
-  SignalIcon,
-  RocketLaunchIcon,
-  BoltIcon,
-  BeakerIcon,
-  LinkIcon,
-  AdjustmentsHorizontalIcon,
-  Cog6ToothIcon,
-  WifiIcon,
-  SunIcon,
-  CircleStackIcon,
-  LightBulbIcon,
-  ComputerDesktopIcon,
-  SpeakerWaveIcon,
-  BuildingOffice2Icon,
-  GlobeAltIcon,
-  PuzzlePieceIcon,
-  DevicePhoneMobileIcon,
-  SparklesIcon,
+  PhoneIcon,
+  Bars3Icon,
+  XMarkIcon,
+  ChevronDownIcon
 } from "@heroicons/react/24/outline";
 
+// ... Categories and types (keep only necessary ones if they are moved, but let's just keep them here for now)
 type NavItem = {
   name: string;
   href: string;
@@ -48,40 +31,34 @@ type NavItem = {
   authOnly?: boolean;
 };
 
-type CategoryItem = {
-  name: string;
-  slug: string;
-  icon: React.ComponentType<{ width?: number; height?: number; className?: string }>;
-};
-
 type SessionUser = {
   role?: string;
 };
 
-const CATEGORIES: CategoryItem[] = [
-  { name: "Electronics Components", slug: "electronics-components", icon: CpuChipIcon },
-  { name: "Development Boards", slug: "development-boards", icon: CommandLineIcon },
-  { name: "Robotics & Automation", slug: "robotics-automation", icon: CubeTransparentIcon },
-  { name: "RC Models & Vehicles", slug: "rc-models-vehicles", icon: TruckIcon },
-  { name: "RC Transmitters & Receivers", slug: "rc-transmitters-receivers", icon: SignalIcon },
-  { name: "Drones & Accessories", slug: "drones-accessories", icon: RocketLaunchIcon },
-  { name: "Power & Batteries", slug: "power-batteries", icon: BoltIcon },
-  { name: "Tools & Equipment", slug: "tools-equipment", icon: WrenchScrewdriverIcon },
-  { name: "Test & Measurement", slug: "test-measurement", icon: BeakerIcon },
-  { name: "Cables & Connectors", slug: "cables-connectors", icon: LinkIcon },
-  { name: "Switches & Relays", slug: "switches-relays", icon: AdjustmentsHorizontalIcon },
-  { name: "Motors & Drivers", slug: "motors-drivers", icon: Cog6ToothIcon },
-  { name: "Wireless Modules", slug: "wireless-modules", icon: WifiIcon },
-  { name: "Solar", slug: "solar", icon: SunIcon },
-  { name: "PCB & Prototyping", slug: "pcb-prototyping", icon: CircleStackIcon },
-  { name: "LEDs & Lighting", slug: "leds-lighting", icon: LightBulbIcon },
-  { name: "Display Modules", slug: "display-modules", icon: ComputerDesktopIcon },
-  { name: "Audio Components", slug: "audio-components", icon: SpeakerWaveIcon },
-  { name: "Industrial Electronics", slug: "industrial-electronics", icon: BuildingOffice2Icon },
-  { name: "IoT Devices", slug: "iot-devices", icon: GlobeAltIcon },
-  { name: "DIY Electronics Kits", slug: "diy-kits", icon: PuzzlePieceIcon },
-  { name: "Electronic Gadgets", slug: "electronic-gadgets", icon: DevicePhoneMobileIcon },
-  { name: "Electrical Accessories", slug: "electrical-accessories", icon: SparklesIcon },
+const CATEGORIES = [
+  { name: "Electronics Components", slug: "electronics-components" },
+  { name: "Development Boards", slug: "development-boards" },
+  { name: "Robotics & Automation", slug: "robotics-automation" },
+  { name: "RC Models & Vehicles", slug: "rc-models-vehicles" },
+  { name: "RC Transmitters & Receivers", slug: "rc-transmitters-receivers" },
+  { name: "Drones & Accessories", slug: "drones-accessories" },
+  { name: "Power & Batteries", slug: "power-batteries" },
+  { name: "Tools & Equipment", slug: "tools-equipment" },
+  { name: "Test & Measurement", slug: "test-measurement" },
+  { name: "Cables & Connectors", slug: "cables-connectors" },
+  { name: "Switches & Relays", slug: "switches-relays" },
+  { name: "Motors & Drivers", slug: "motors-drivers" },
+  { name: "Wireless Modules", slug: "wireless-modules" },
+  { name: "Solar", slug: "solar" },
+  { name: "PCB & Prototyping", slug: "pcb-prototyping" },
+  { name: "LEDs & Lighting", slug: "leds-lighting" },
+  { name: "Display Modules", slug: "display-modules" },
+  { name: "Audio Components", slug: "audio-components" },
+  { name: "Industrial Electronics", slug: "industrial-electronics" },
+  { name: "IoT Devices", slug: "iot-devices" },
+  { name: "DIY Electronics Kits", slug: "diy-kits" },
+  { name: "Electronic Gadgets", slug: "electronic-gadgets" },
+  { name: "Electrical Accessories", slug: "electrical-accessories" },
 ];
 
 export default function Sidebar() {
@@ -89,11 +66,13 @@ export default function Sidebar() {
   const { data: session } = useSession();
   const sessionUser = session?.user as SessionUser | undefined;
   const { totalItems } = useCart();
+  const [expanded, setExpanded] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
 
   const topNavItems: NavItem[] = [
     { name: "Home", href: "/", icon: HomeIcon },
-    { name: "All Products", href: "/products", icon: Squares2X2Icon },
-    { name: "Our Services", href: "/services", icon: WrenchScrewdriverIcon },
+    { name: "Products", href: "/products", icon: Squares2X2Icon },
+    { name: "Services", href: "/services", icon: WrenchScrewdriverIcon },
     { name: "Cart", href: "/cart", icon: ShoppingCartIcon, badge: totalItems },
     { name: "Wishlist", href: "/wishlist", icon: HeartIcon, authOnly: true },
     { name: "Profile", href: "/profile", icon: UserIcon, authOnly: true },
@@ -110,89 +89,109 @@ export default function Sidebar() {
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
-
-
   return (
-    <aside className={styles.sidebar}>
-      {/* Logo */}
-      <Link href="/" className={styles.logo}>
-        <span className={styles.logoIcon}>⚡</span>
-        <div className={styles.logoText}>
-          <span className={styles.logoMain}>Robotics</span>
-          <span className={styles.logoSub}>Shop CTG</span>
-        </div>
-      </Link>
+    <>
+      {expanded && (
+        <div className={styles.overlay} onClick={() => setExpanded(false)}></div>
+      )}
+      <aside className={`${styles.sidebar} ${expanded ? styles.expanded : ""}`}>
+        <button 
+          className={styles.toggleBtn}
+          onClick={() => setExpanded(!expanded)}
+          aria-label="Toggle Sidebar"
+        >
+          {expanded ? <XMarkIcon width={24} height={24} /> : <Bars3Icon width={24} height={24} />}
+        </button>
 
-      {/* Main Navigation */}
-      <nav className={styles.mainNav}>
-        <p className={styles.navLabel}>Navigation</p>
-        {visibleNavItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`${styles.link} ${isActive(item.href) ? styles.active : ""}`}
-            >
-              <span className={styles.linkIcon}>
-                <Icon width={18} height={18} />
-              </span>
-              <span className={styles.linkText}>{item.name}</span>
-              {item.badge && item.badge > 0 ? (
-                <span className={styles.badge}>{item.badge}</span>
-              ) : null}
-            </Link>
-          );
-        })}
-      </nav>
+        <nav className={styles.mainNav}>
+          {visibleNavItems.map((item) => {
+            const Icon = item.icon;
+            
+            // Render regular items
+            if (item.name !== "Products") {
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`${styles.link} ${isActive(item.href) ? styles.active : ""}`}
+                  title={!expanded ? item.name : undefined}
+                  onClick={() => setExpanded(false)}
+                >
+                  <span className={styles.linkIcon}>
+                    <Icon width={22} height={22} />
+                    {item.badge && item.badge > 0 ? (
+                      <span className={styles.badge}>{item.badge}</span>
+                    ) : null}
+                  </span>
+                  {expanded && <span className={styles.linkText}>{item.name}</span>}
+                </Link>
+              );
+            }
 
-      {/* Categories */}
-      <div className={styles.categoriesSection}>
-        <p className={styles.navLabel}>Categories</p>
-        <div className={styles.categoriesList}>
-          {CATEGORIES.map((cat) => {
-            const Icon = cat.icon;
-            const active = pathname.startsWith("/products") && 
-              (typeof window !== "undefined" 
-                ? new URLSearchParams(window.location.search).get("category") === cat.slug
-                : false);
+            // Render Products with Categories dropdown
             return (
-              <Link
-                key={cat.slug}
-                href={`/products?category=${cat.slug}`}
-                className={`${styles.categoryLink} ${active ? styles.active : ""}`}
-              >
-                <span className={styles.linkIcon}>
-                  <Icon width={16} height={16} />
-                </span>
-                <span className={styles.linkText}>{cat.name}</span>
-              </Link>
+              <div key={item.name} className={styles.dropdownWrapper}>
+                <div 
+                  className={`${styles.link} ${isActive(item.href) ? styles.active : ""} ${styles.dropdownTrigger}`}
+                  title={!expanded ? item.name : undefined}
+                  onClick={() => {
+                    if (!expanded) {
+                      setExpanded(true);
+                    }
+                    setCategoriesOpen(!categoriesOpen);
+                  }}
+                >
+                  <span className={styles.linkIcon}>
+                    <Icon width={22} height={22} />
+                  </span>
+                  {expanded && (
+                    <>
+                      <span className={styles.linkText}>{item.name}</span>
+                      <ChevronDownIcon width={16} height={16} className={`${styles.chevron} ${categoriesOpen ? styles.chevronOpen : ""}`} />
+                    </>
+                  )}
+                </div>
+                {expanded && categoriesOpen && (
+                  <div className={styles.dropdownContent}>
+                    {CATEGORIES.map((cat) => (
+                      <Link 
+                        key={cat.slug}
+                        href={`/products?category=${cat.slug}`}
+                        className={styles.subLink}
+                        onClick={() => setExpanded(false)}
+                      >
+                        {cat.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             );
           })}
-        </div>
-      </div>
+        </nav>
 
-      {/* Bottom Auth */}
-      <div className={styles.bottomNav}>
-        {session ? (
-          <button
-            onClick={() => signOut()}
-            className={`${styles.link} ${styles.logoutBtn}`}
-          >
-            <span className={styles.linkIcon}>
-              <ArrowRightOnRectangleIcon width={18} height={18} />
-            </span>
-            <span className={styles.linkText}>Logout</span>
-          </button>
-        ) : (
-          <Link href="/login" className={styles.link}>
-            <span className={styles.linkIcon}>
-              <UserIcon width={18} height={18} />
-            </span>
-            <span className={styles.linkText}>Login / Register</span>
-          </Link>
-        )}
-      </div>
-    </aside>
+        <div className={styles.bottomNav}>
+          {session ? (
+            <button
+              onClick={() => signOut()}
+              className={`${styles.link} ${styles.logoutBtn}`}
+              title={!expanded ? "Logout" : undefined}
+            >
+              <span className={styles.linkIcon}>
+                <ArrowRightOnRectangleIcon width={22} height={22} />
+              </span>
+              {expanded && <span className={styles.linkText}>Logout</span>}
+            </button>
+          ) : (
+            <Link href="/login" className={styles.link} title={!expanded ? "Login" : undefined}>
+              <span className={styles.linkIcon}>
+                <UserIcon width={22} height={22} />
+              </span>
+              {expanded && <span className={styles.linkText}>Login / Register</span>}
+            </Link>
+          )}
+        </div>
+      </aside>
+    </>
   );
 }

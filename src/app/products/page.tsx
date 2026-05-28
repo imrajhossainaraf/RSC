@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
+import WishlistButton from '@/components/WishlistButton';
 import styles from './page.module.css';
 
 type Product = {
@@ -15,6 +16,7 @@ type Product = {
   image: string;
   rating: number;
   reviewCount: number;
+  stock: number;
 };
 
 type Category = {
@@ -28,10 +30,10 @@ function ProductsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeCategorySlug = searchParams.get('category') || '';
-  
+
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(searchParams.get('search') || '');
   const [loading, setLoading] = useState(true);
 
   // Filters State
@@ -284,9 +286,16 @@ function ProductsContent() {
                     </div>
 
                     <div className={styles.cardFooter}>
-                      <Link href={`/products/${product._id}`} className="btn-orange" style={{ width: '100%', justifyContent: 'center' }}>
+                      <Link href={`/products/${product._id}`} className="btn-orange" style={{ flex: 1, justifyContent: 'center' }}>
                         Order Now
                       </Link>
+                      <WishlistButton
+                        productId={product._id}
+                        name={product.name}
+                        price={product.price - (product.price * (product.discount / 100))}
+                        image={product.image}
+                        stock={product.stock}
+                      />
                     </div>
                   </div>
                 </div>

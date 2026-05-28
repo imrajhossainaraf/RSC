@@ -4,9 +4,10 @@ import { notFound } from 'next/navigation';
 import dbConnect from '@/lib/mongodb';
 import Product from '@/models/Product';
 import ClientAddToCart from './ClientAddToCart';
+import WishlistButton from '@/components/WishlistButton';
 import styles from './page.module.css';
-import { 
-  ShoppingCartIcon 
+import {
+  ShoppingCartIcon
 } from '@heroicons/react/24/outline';
 
 export const revalidate = 60; // revalidate every 60 seconds
@@ -116,13 +117,22 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
           <div className={styles.divider}></div>
 
-          <ClientAddToCart product={{
-            productId: product._id.toString(),
-            name: product.name,
-            price: discountedPrice,
-            image: product.image,
-            stock: product.stock
-          }} />
+          <div className={styles.actionsRow}>
+            <ClientAddToCart product={{
+              productId: product._id.toString(),
+              name: product.name,
+              price: discountedPrice,
+              image: product.image,
+              stock: product.stock
+            }} />
+            <WishlistButton
+              productId={product._id.toString()}
+              name={product.name}
+              price={discountedPrice}
+              image={product.image}
+              stock={product.stock}
+            />
+          </div>
         </div>
       </div>
 

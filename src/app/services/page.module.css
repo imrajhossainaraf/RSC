@@ -19,10 +19,11 @@
   font-size: 2.8rem;
   font-weight: 800;
   line-height: 1.2;
+  color: #0f172a;
 }
 
 .subtext {
-  color: #94a3b8;
+  color: #64748b;
   font-size: 1.1rem;
   line-height: 1.6;
 }
@@ -34,26 +35,30 @@
 }
 
 .serviceCard {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 2.5rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 1.25rem;
-  transition: transform 0.3s ease, border-color 0.3s ease;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: var(--shadow-card);
 }
 
 .serviceCard:hover {
   transform: translateY(-5px);
-  border-color: var(--orange-glow);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.4), var(--shadow-orange);
+  border-color: var(--primary-glow);
+  box-shadow: var(--shadow-glow);
 }
 
 .iconContainer {
   width: 56px;
   height: 56px;
   border-radius: var(--radius-md);
-  background: var(--orange-dim);
-  color: var(--orange);
+  background: var(--primary-dim);
+  color: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -62,11 +67,11 @@
 .serviceCard h3 {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #f1f5f9;
+  color: #0f172a;
 }
 
 .serviceCard p {
-  color: #94a3b8;
+  color: #64748b;
   font-size: 0.95rem;
   line-height: 1.6;
 }
@@ -78,16 +83,20 @@
   flex-direction: column;
   align-items: center;
   gap: 1.5rem;
-  background: radial-gradient(circle at top, rgba(249, 115, 22, 0.08) 0%, transparent 70%), var(--card-bg);
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(124, 58, 237, 0.02) 100%), var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
 }
 
 .ctaSection h2 {
   font-size: 2rem;
   font-weight: 800;
+  color: #0f172a;
 }
 
 .ctaSection p {
-  color: #94a3b8;
+  color: #64748b;
   max-width: 600px;
   line-height: 1.6;
 }
