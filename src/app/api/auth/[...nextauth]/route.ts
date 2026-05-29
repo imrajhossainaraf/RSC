@@ -97,15 +97,33 @@ export const authOptions: NextAuthOptions = {
 
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       const typedToken = token as AuthToken;
       if (user) {
         const typedUser = user as AuthUser;
-        typedToken.role = typedUser.role ?? typedToken.role ?? "user";
         typedToken.id = typedUser.id ?? typedToken.id;
+
+        if (account?.type === "oauth") {
+          // OAuth providers don't supply a role — fetch it from DB so grants take effect
+          try {
+            await dbConnect();
+            const dbUser = await User.findOne({ email: String(typedToken.email) });
+            if (dbUser) {
+              typedToken.role = dbUser.role;
+              typedToken.id = dbUser._id.toString();
+            } else {
+              typedToken.role = "user";
+            }
+          } catch {
+            typedToken.role = "user";
+          }
+        } else {
+          // Credentials: role comes directly from authorize()
+          typedToken.role = typedUser.role ?? typedToken.role ?? "user";
+        }
       }
 
-      // Dynamically override role if email is in ADMIN_EMAILS
+      // ADMIN_EMAILS env var always takes precedence (overrides DB role too)
       if (typedToken.email) {
         const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map((e) => e.trim().toLowerCase());
         if (adminEmails.includes(String(typedToken.email).toLowerCase())) {
@@ -113,7 +131,7 @@ export const authOptions: NextAuthOptions = {
         }
       }
 
-      // Ensure OAuth users receive the MongoDB user id in the token when possible
+      // Ensure credentials users also get their MongoDB id in the token
       if (!isValidObjectId(typedToken.id) && typedToken.email) {
         try {
           await dbConnect();
