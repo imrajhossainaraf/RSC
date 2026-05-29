@@ -69,6 +69,9 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true },
   },
+  verification: {
+    google: "rhxa2No-sAcr4QuFou7-ibFTHUhQR_0RWbLsK9Vls-A",
+  },
 };
 
 import Navbar from "@/components/Navbar";
