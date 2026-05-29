@@ -1,0 +1,167 @@
+.footer {
+  margin-left: calc(var(--sidebar-width) + 40px);
+  background: #0f172a;
+  padding: 3.5rem 3rem 2rem;
+  transition: margin 0.3s ease;
+}
+
+.inner {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr 1fr;
+  gap: 3rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ── Brand ── */
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.brandLogo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.logoImg {
+  border-radius: 10px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.brandName {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.brandTagline {
+  font-size: 0.72rem;
+  color: #a78bfa;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.brandDesc {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  line-height: 1.7;
+  max-width: 300px;
+}
+
+/* ── Link groups ── */
+.linkGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.groupTitle {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #475569;
+  margin-bottom: 0.4rem;
+}
+
+.linkList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footerLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: #94a3b8;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.footerLink:hover {
+  color: #ffffff;
+}
+
+.linkIcon {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+/* Share & Careers gets a purple highlight */
+.highlightLink {
+  color: #a78bfa;
+  font-weight: 600;
+}
+
+.highlightLink:hover {
+  color: #c4b5fd;
+}
+
+.highlightLink .linkIcon {
+  opacity: 1;
+}
+
+/* ── Bottom bar ── */
+.bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1.75rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.copy {
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.madeIn {
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .footer {
+    margin-left: 0;
+    padding: 2.5rem 1.25rem 6rem; /* extra bottom clears the mobile nav bar */
+  }
+
+  .inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    padding-bottom: 2rem;
+  }
+
+  .brand {
+    grid-column: 1 / -1;
+  }
+
+  .brandDesc {
+    max-width: 100%;
+  }
+
+  .bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .inner {
+    grid-template-columns: 1fr;
+  }
+}

@@ -98,7 +98,7 @@ export default function AdminPage() {
   // Orders Tab State
   type OrderBuyer = { name: string; email: string; phone: string; address: string; city: string; zipCode: string };
   type OrderItem = { productName: string; quantity: number; priceAtPurchase: number };
-  type AdminOrder = { _id: string; buyerDetails: OrderBuyer; items: OrderItem[]; total: number; status: string; createdAt: string };
+  type AdminOrder = { _id: string; buyerDetails?: OrderBuyer; items: OrderItem[]; total: number; status: string; createdAt: string };
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [ordersTotal, setOrdersTotal] = useState(0);
   const [ordersPage, setOrdersPage] = useState(1);
@@ -1175,8 +1175,8 @@ export default function AdminPage() {
                         </td>
                         <td>
                           <div className={styles.orderCustomerCell}>
-                            <span className={styles.alertItemName}>{o.buyerDetails.name}</span>
-                            <span className={styles.adminRowEmail}>{o.buyerDetails.email}</span>
+                            <span className={styles.alertItemName}>{o.buyerDetails?.name ?? "—"}</span>
+                            <span className={styles.adminRowEmail}>{o.buyerDetails?.email ?? "—"}</span>
                           </div>
                         </td>
                         <td>

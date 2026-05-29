@@ -42,10 +42,10 @@ export default async function Home() {
           </p>
           <div className={styles.heroActions}>
             <Link href="/products" className="btn-primary">
-              Shop Components
+              All Products
             </Link>
             <Link href="/services" className="btn-secondary">
-              View Data Sheets
+              Services
             </Link>
           </div>
         </div>

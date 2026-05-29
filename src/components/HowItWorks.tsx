@@ -37,23 +37,47 @@ const steps = [
 
 export default function HowItWorks() {
   const timelineRef = useRef<HTMLDivElement>(null);
+  const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [chipY, setChipY] = useState(0);
+  const [visibleSteps, setVisibleSteps] = useState<boolean[]>(steps.map(() => false));
 
+  // Scroll-driven chip (desktop)
   useEffect(() => {
     const handleScroll = () => {
       if (!timelineRef.current) return;
       const rect = timelineRef.current.getBoundingClientRect();
       const vh = window.innerHeight;
-      const trackHeight = rect.height - 64; // 64px = chip diameter
+      const trackHeight = rect.height - 64;
       const scrolled = vh - rect.top;
       const scrollable = rect.height + vh;
       const p = Math.min(1, Math.max(0, scrolled / scrollable));
       setChipY(p * trackHeight);
     };
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Intersection observer — triggers entrance animations per step
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const idx = stepRefs.current.indexOf(entry.target as HTMLDivElement);
+          if (idx !== -1 && entry.isIntersecting) {
+            setVisibleSteps((prev) => {
+              if (prev[idx]) return prev;
+              const next = [...prev];
+              next[idx] = true;
+              return next;
+            });
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+    stepRefs.current.forEach((ref) => { if (ref) observer.observe(ref); });
+    return () => observer.disconnect();
   }, []);
 
   return (
@@ -69,10 +93,10 @@ export default function HowItWorks() {
       </div>
 
       <div ref={timelineRef} className={styles.timeline}>
-        {/* Vertical dashed center track */}
+        {/* Vertical dashed center track (desktop) */}
         <div className={styles.track} />
 
-        {/* Scroll-driven chip */}
+        {/* Scroll-driven chip (desktop) */}
         <div
           className={styles.chip}
           style={{ transform: `translateX(-50%) translateY(${chipY}px)` }}
@@ -82,9 +106,14 @@ export default function HowItWorks() {
         </div>
 
         {steps.map((step, i) => (
-          <div key={i} className={styles.stepRow}>
+          <div
+            key={i}
+            ref={(el) => { stepRefs.current[i] = el; }}
+            className={`${styles.stepRow} ${visibleSteps[i] ? styles.stepVisible : ''}`}
+            style={{ transitionDelay: `${i * 0.08}s` }}
+          >
             {/* Left slot */}
-            <div className={styles.slot}>
+            <div className={`${styles.slot} ${step.side !== 'left' ? styles.slotEmpty : ''}`}>
               {step.side === 'left' && (
                 <div className={`${styles.card} ${styles.cardLeft}`}>
                   <span className={styles.cardIcon}>{step.icon}</span>
@@ -96,17 +125,15 @@ export default function HowItWorks() {
 
             {/* Center connector dot */}
             <div className={styles.center}>
-              <div
-                className={`${styles.hLine} ${styles.hLineLeft} ${step.side === 'left' ? styles.hLineActive : ''}`}
-              />
-              <div className={styles.dot} />
-              <div
-                className={`${styles.hLine} ${styles.hLineRight} ${step.side === 'right' ? styles.hLineActive : ''}`}
-              />
+              <div className={`${styles.hLine} ${styles.hLineLeft} ${step.side === 'left' ? styles.hLineActive : ''}`} />
+              <div className={styles.dot}>
+                <span className={styles.dotNum}>{i + 1}</span>
+              </div>
+              <div className={`${styles.hLine} ${styles.hLineRight} ${step.side === 'right' ? styles.hLineActive : ''}`} />
             </div>
 
             {/* Right slot */}
-            <div className={styles.slot}>
+            <div className={`${styles.slot} ${step.side !== 'right' ? styles.slotEmpty : ''}`}>
               {step.side === 'right' && (
                 <div
                   className={`${styles.card} ${styles.cardRight} ${step.highlight ? styles.cardHighlight : ''}`}

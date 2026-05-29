@@ -49,7 +49,7 @@
   margin: 0 auto;
 }
 
-/* Vertical dashed center line */
+/* Vertical dashed center line (desktop) */
 .track {
   position: absolute;
   left: 50%;
@@ -68,7 +68,7 @@
   z-index: 0;
 }
 
-/* Scroll-driven chip */
+/* Scroll-driven chip (desktop) */
 .chip {
   position: absolute;
   left: 50%;
@@ -95,6 +95,15 @@
   min-height: 200px;
   position: relative;
   z-index: 1;
+  /* entrance animation start state */
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+.stepVisible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* Left and right card slots, each 45% */
@@ -113,14 +122,24 @@
 }
 
 .dot {
-  width: 14px;
-  height: 14px;
+  width: 32px;
+  height: 32px;
   background: #ffffff;
   border: 3px solid var(--primary);
   border-radius: 50%;
   flex-shrink: 0;
   z-index: 2;
-  box-shadow: 0 0 0 4px var(--primary-dim);
+  box-shadow: 0 0 0 5px var(--primary-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dotNum {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
 }
 
 /* Horizontal connector arms */
@@ -140,14 +159,6 @@
 
 .hLineActive {
   opacity: 0.6;
-}
-
-.hLineLeft {
-  /* left arm — between dot and left card */
-}
-
-.hLineRight {
-  /* right arm — between dot and right card */
 }
 
 /* ── Cards ── */
@@ -219,49 +230,120 @@
   line-height: 1.7;
 }
 
-/* ── Responsive ── */
+/* ── Mobile layout ── */
 @media (max-width: 680px) {
+  .section {
+    padding: 3rem 0 2rem;
+  }
+
+  .header {
+    margin-bottom: 2.5rem;
+  }
+
   .title {
-    font-size: 1.7rem;
+    font-size: 1.75rem;
   }
 
+  .subtitle {
+    font-size: 0.88rem;
+  }
+
+  /* Hide desktop-only elements */
+  .track,
+  .chip {
+    display: none;
+  }
+
+  /* Timeline becomes a left-edge vertical rail */
   .timeline {
-    max-width: 100%;
+    padding-left: 1rem;
   }
 
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 27px; /* center of the dot (1rem offset + 16px half-dot) */
+    top: 16px;
+    bottom: 16px;
+    width: 2px;
+    background: repeating-linear-gradient(
+      to bottom,
+      var(--primary) 0px,
+      var(--primary) 6px,
+      transparent 6px,
+      transparent 14px
+    );
+    opacity: 0.3;
+    z-index: 0;
+  }
+
+  /* Row: dot on left, card filling the rest */
   .stepRow {
-    flex-direction: column;
+    flex-direction: row;
+    align-items: flex-start;
     min-height: unset;
-    margin-bottom: 2rem;
+    gap: 0.875rem;
+    margin-bottom: 1.5rem;
+    /* re-declare animation start state for mobile (slide from left) */
+    opacity: 0;
+    transform: translateX(-24px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
   }
 
-  .slot {
-    flex: 0 0 100%;
-    width: 100%;
-    padding: 0.5rem 0;
+  .stepVisible {
+    opacity: 1;
+    transform: translateX(0);
   }
 
+  /* Center becomes a narrow left column holding just the dot */
   .center {
     flex: 0 0 auto;
-    width: 100%;
-    justify-content: center;
-    margin: 0.5rem 0;
+    order: -1;
+    flex-direction: column;
+    width: 32px;
+    height: auto;
+    align-self: flex-start;
+    padding-top: 4px;
   }
 
+  /* Hide horizontal arms on mobile */
   .hLine {
     display: none;
   }
 
-  .track {
-    display: none;
+  /* Active slot fills remaining space */
+  .slot {
+    flex: 1;
+    padding: 0;
+    min-width: 0;
   }
 
-  .chip {
+  /* Hide empty slots so they take no space */
+  .slotEmpty {
     display: none;
   }
 
   .cardLeft,
   .cardRight {
     margin: 0;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .cardIcon {
+    width: 42px;
+    height: 42px;
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .cardTitle {
+    font-size: 1rem;
+  }
+
+  .cardDesc {
+    font-size: 0.82rem;
   }
 }

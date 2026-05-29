@@ -149,7 +149,34 @@
 
 @media (max-width: 480px) {
   .productGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .cardImageContainer {
+    height: 150px;
+  }
+
+  .cardInfo {
+    padding: 0.75rem;
+  }
+
+  .productTitle {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .price {
+    font-size: 1rem;
+  }
+
+  .productCategory {
+    font-size: 0.65rem;
+  }
+
+  .orderBtn {
+    width: 34px;
+    height: 34px;
   }
 }
 
@@ -349,6 +376,14 @@
 
   .heroTitle {
     font-size: 1.85rem;
+  }
+
+  .heroDescription {
+    display: none;
+  }
+
+  .heroActions {
+    flex-wrap: nowrap;
   }
 
   .heroImagePanel {

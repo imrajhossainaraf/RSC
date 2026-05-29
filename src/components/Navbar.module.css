@@ -20,6 +20,7 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
+/* ── Logo ── */
 .logoContainer {
   display: flex;
   align-items: center;
@@ -46,6 +47,15 @@
   line-height: 1;
 }
 
+.logoShort {
+  display: none;
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+}
+
 .logoMain {
   font-family: var(--font-heading);
   font-size: 0.9rem;
@@ -53,14 +63,7 @@
   font-style: italic;
 }
 
-.logoSub {
-  font-family: var(--font-heading);
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -0.02em;
-}
-
+/* ── Desktop search ── */
 .searchContainer {
   flex: 1;
   display: flex;
@@ -110,6 +113,7 @@
   color: var(--primary);
 }
 
+/* ── Desktop right nav ── */
 .rightNav {
   display: flex;
   align-items: center;
@@ -175,11 +179,68 @@
   margin: 8px 0;
 }
 
+/* ── Mobile action icons (hidden on desktop) ── */
+.mobileActions {
+  display: none;
+  align-items: center;
+  gap: 6px;
+}
+
+.mobileIconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  color: #475569;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+
+.mobileIconBtn:hover {
+  background: var(--primary-dim);
+  color: var(--primary);
+}
+
+.mobileIconActive {
+  color: var(--primary);
+}
+
+/* ── Mobile search drawer ── */
+.mobileSearchDrawer {
+  display: none;
+  position: fixed;
+  top: 80px;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid #e2e8f0;
+  z-index: 299;
+  padding: 12px 1rem;
+  animation: slideDown 0.2s ease;
+}
+
+.mobileSearchForm {
+  width: 100%;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ── */
 @media (max-width: 1024px) {
   .logoContainer {
     min-width: auto;
   }
-
   .rightNav {
     min-width: auto;
   }
@@ -188,27 +249,37 @@
 @media (max-width: 768px) {
   .header {
     padding: 0 1rem;
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
 
-  .logoContainer {
-    flex-shrink: 0;
+  /* Show "RSC" short name, hide full name */
+  .logoShort {
+    display: block;
   }
-
   .logoMain {
     display: none;
   }
 
-  .logoSub {
-    font-size: 1.4rem;
-  }
-
+  /* Hide desktop search bar and right nav */
   .searchContainer {
-    flex: 1;
-    max-width: none;
+    display: none;
   }
-
   .rightNav {
     display: none;
+  }
+
+  /* Show mobile icons */
+  .mobileActions {
+    display: flex;
+  }
+
+  /* Show search drawer */
+  .mobileSearchDrawer {
+    display: block;
+  }
+
+  .logoIcon {
+    width: 44px !important;
+    height: 44px !important;
   }
 }

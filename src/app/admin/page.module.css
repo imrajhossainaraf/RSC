@@ -594,6 +594,11 @@
   border-radius: var(--radius-sm);
 }
 
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 .emptyTable {
   padding: 4rem 2rem;
   text-align: center;
@@ -1074,5 +1079,181 @@
 @media (max-width: 500px) {
   .settingsGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   MOBILE RESPONSIVE — ADMIN DASHBOARD
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+  /* ── Header ── */
+  .adminContainer {
+    gap: 1.25rem;
+  }
+
+  .adminHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+  }
+
+  .headerTitle {
+    font-size: 1.4rem;
+  }
+
+  .headerSub {
+    font-size: 0.8rem;
+  }
+
+  /* ── Tabs: horizontal scroll so they never wrap or overflow ── */
+  .tabsContainer {
+    gap: 0;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .tabsContainer::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tabBtn {
+    font-size: 0.78rem;
+    padding: 8px 10px;
+    gap: 5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border-bottom: 2px solid transparent;
+  }
+
+  .tabBadge {
+    display: none;
+  }
+
+  /* ── Stats grid: 2 columns on mobile ── */
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .statCard {
+    padding: 1.25rem 0.75rem;
+  }
+
+  .statVal {
+    font-size: 2rem;
+  }
+
+  .statLabel {
+    font-size: 0.72rem;
+  }
+
+  /* ── Dashboard summary row: single column ── */
+  .dashboardSummaryRow {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .summaryBox {
+    padding: 1.25rem;
+  }
+
+  .shortcutBtns {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  /* ── Product form ── */
+  .productFormSection {
+    padding: 1.25rem;
+  }
+
+  .productFormSection h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  /* ── Listing section ── */
+  .listingSection {
+    padding: 1.25rem;
+  }
+
+  .searchRow h3 {
+    font-size: 1.1rem;
+  }
+
+  .searchRow {
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .searchInputWrapper {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .filtersWrapper {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .filterDropdown {
+    min-width: 0;
+    flex: 1;
+    font-size: 0.85rem;
+  }
+
+  /* ── Category split grid: single column ── */
+  .categoriesSplitGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .categoryFormPanel,
+  .categoriesListPanel {
+    padding: 1.25rem;
+  }
+
+  .categoriesPillsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Settings grid: single column ── */
+  .settingsGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .settingsCard {
+    padding: 1.25rem;
+  }
+
+  /* ── Orders listing ── */
+  .paginationRow {
+    gap: 0.75rem;
+    padding-top: 1rem;
+  }
+
+  /* ── Form actions: stack on very small ── */
+  .formActions {
+    flex-wrap: wrap;
+  }
+
+  /* ── Portal (guest view) ── */
+  .portalTitle {
+    font-size: 1.8rem;
+  }
+
+  .pillarsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .pillarCard {
+    padding: 1.5rem;
   }
 }

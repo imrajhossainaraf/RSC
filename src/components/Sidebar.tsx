@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useCart } from "@/context/CartContext";
 import styles from "./Sidebar.module.css";
@@ -63,6 +63,7 @@ const CATEGORIES = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { data: session } = useSession();
   const sessionUser = session?.user as SessionUser | undefined;
   const { totalItems } = useCart();
@@ -70,14 +71,14 @@ export default function Sidebar() {
   const [categoriesOpen, setCategoriesOpen] = useState(false);
 
   const topNavItems: NavItem[] = [
-    { name: "Home", href: "/", icon: HomeIcon },
-    { name: "Products", href: "/products", icon: Squares2X2Icon },
-    { name: "Services", href: "/services", icon: WrenchScrewdriverIcon },
-    { name: "Cart", href: "/cart", icon: ShoppingCartIcon, badge: totalItems },
-    { name: "Wishlist", href: "/wishlist", icon: HeartIcon, authOnly: true },
-    { name: "Profile", href: "/profile", icon: UserIcon, authOnly: true },
-    { name: "Share & Careers", href: "/admin", icon: ShareIcon },
-    { name: "Contact", href: "/contact", icon: PhoneIcon },
+    { name: "Home",            href: "/",        icon: HomeIcon },
+    { name: "Products",        href: "/products", icon: Squares2X2Icon },
+    { name: "Services",        href: "/services", icon: WrenchScrewdriverIcon },
+    { name: "Cart",            href: "/cart",     icon: ShoppingCartIcon, badge: totalItems },
+    { name: "Wishlist",        href: "/wishlist", icon: HeartIcon,  authOnly: true },
+    { name: "Profile",         href: "/profile",  icon: UserIcon,   authOnly: true },
+    { name: "Share & Careers", href: "/admin",    icon: ShareIcon },
+    { name: "Contact",         href: "/contact",  icon: PhoneIcon },
   ];
 
   const visibleNavItems = topNavItems.filter((item) => {
@@ -131,12 +132,13 @@ export default function Sidebar() {
             // Render Products with Categories dropdown
             return (
               <div key={item.name} className={styles.dropdownWrapper}>
-                <div 
+                <div
                   className={`${styles.link} ${isActive(item.href) ? styles.active : ""} ${styles.dropdownTrigger}`}
                   title={!expanded ? item.name : undefined}
                   onClick={() => {
                     if (!expanded) {
-                      setExpanded(true);
+                      router.push("/products");
+                      return;
                     }
                     setCategoriesOpen(!categoriesOpen);
                   }}
