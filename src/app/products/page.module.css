@@ -442,6 +442,12 @@
     margin-top: 0.4rem;
   }
 
+  .cardFooter :global(.btn-orange) {
+    padding: 6px 10px;
+    font-size: 0.72rem;
+    gap: 4px;
+  }
+
   .ratingRow {
     font-size: 0.75rem;
   }
