@@ -34,7 +34,7 @@ export async function PUT(
 
     await dbConnect();
 
-    // Check if name is already taken by another category
+    // Check if name is already taken by another category .
     const existingCategory = await Category.findOne({
       name: { $regex: new RegExp(`^${escapeRegExp(name)}$`, "i") },
       _id: { $ne: id },
