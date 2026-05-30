@@ -184,8 +184,8 @@ function buildConfirmationEmail(
       (i) => `<tr>
         <td style="padding:10px;border:1px solid #e2e8f0;">${i.productName}</td>
         <td style="padding:10px;border:1px solid #e2e8f0;text-align:center;">${i.quantity}</td>
-        <td style="padding:10px;border:1px solid #e2e8f0;text-align:right;">$${i.priceAtPurchase.toFixed(2)}</td>
-        <td style="padding:10px;border:1px solid #e2e8f0;text-align:right;font-weight:bold;">$${(i.quantity * i.priceAtPurchase).toFixed(2)}</td>
+        <td style="padding:10px;border:1px solid #e2e8f0;text-align:right;">৳${i.priceAtPurchase.toFixed(2)}</td>
+        <td style="padding:10px;border:1px solid #e2e8f0;text-align:right;font-weight:bold;">৳${(i.quantity * i.priceAtPurchase).toFixed(2)}</td>
       </tr>`
     )
     .join("");
@@ -212,7 +212,7 @@ function buildConfirmationEmail(
           <tfoot>
             <tr style="background:#f8fafc;">
               <td colspan="3" style="padding:12px;border:1px solid #e2e8f0;text-align:right;font-weight:bold;">TOTAL</td>
-              <td style="padding:12px;border:1px solid #e2e8f0;text-align:right;font-weight:bold;color:#7c3aed;font-size:1.1rem;">$${total.toFixed(2)}</td>
+              <td style="padding:12px;border:1px solid #e2e8f0;text-align:right;font-weight:bold;color:#7c3aed;font-size:1.1rem;">৳${total.toFixed(2)}</td>
             </tr>
           </tfoot>
         </table>

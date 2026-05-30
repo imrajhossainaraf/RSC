@@ -126,7 +126,7 @@ export default async function Home() {
                 <div className={styles.productFooter}>
                   <div>
                     <span className={styles.price}>
-                      $
+                      ৳
                       {(
                         product.price -
                         product.price * (product.discount / 100)
@@ -134,7 +134,7 @@ export default async function Home() {
                     </span>
                     {product.discount > 0 && (
                       <span className={styles.originalPrice}>
-                        ${product.price.toFixed(2)}
+                        ৳{product.price.toFixed(2)}
                       </span>
                     )}
                   </div>

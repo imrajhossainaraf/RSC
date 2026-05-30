@@ -84,7 +84,7 @@ export default function WishlistPage() {
                 <h3>
                   <Link href={`/products/${item.productId}`}>{item.name}</Link>
                 </h3>
-                <span className={styles.price}>${item.price.toFixed(2)}</span>
+                <span className={styles.price}>৳{item.price.toFixed(2)}</span>
                 
                 <div className={styles.actions}>
                   <button

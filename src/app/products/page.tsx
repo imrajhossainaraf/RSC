@@ -289,10 +289,10 @@ function ProductsContent() {
 
                   <div className={styles.priceRow}>
                     <span className={styles.price}>
-                      ${(product.price - (product.price * (product.discount / 100))).toFixed(2)}
+                      ৳{(product.price - (product.price * (product.discount / 100))).toFixed(2)}
                     </span>
                     {product.discount > 0 && (
-                      <span className={styles.originalPrice}>${product.price.toFixed(2)}</span>
+                      <span className={styles.originalPrice}>৳{product.price.toFixed(2)}</span>
                     )}
                   </div>
 

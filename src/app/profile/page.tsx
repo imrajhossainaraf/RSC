@@ -192,7 +192,7 @@ export default function ProfilePage() {
                     </div>
 
                     <div className={styles.headerMeta}>
-                      <span className={styles.orderTotal}>${order.total.toFixed(2)}</span>
+                      <span className={styles.orderTotal}>৳{order.total.toFixed(2)}</span>
                       <span className={`${styles.statusBadge} ${styles[order.status]}`}>
                         {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                       </span>
@@ -242,11 +242,11 @@ export default function ProfilePage() {
                               <div className={styles.itemMeta}>
                                 <span className={styles.itemName}>{item.product?.name || item.productName || "Deleted Product"}</span>
                                 <span className={styles.itemPrice}>
-                                  {item.quantity} x ${item.priceAtPurchase.toFixed(2)}
+                                  {item.quantity} x ৳{item.priceAtPurchase.toFixed(2)}
                                 </span>
                               </div>
                               <span className={styles.itemSubtotal}>
-                                ${(item.quantity * item.priceAtPurchase).toFixed(2)}
+                                ৳{(item.quantity * item.priceAtPurchase).toFixed(2)}
                               </span>
                             </div>
                           ))}

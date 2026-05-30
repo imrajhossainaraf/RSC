@@ -147,7 +147,7 @@ export default function CartPage() {
                 <Link href={`/products/${item.productId}`} className={styles.itemName}>
                   {item.name}
                 </Link>
-                <div className={styles.itemPrice}>${item.price.toFixed(2)}</div>
+                <div className={styles.itemPrice}>৳{item.price.toFixed(2)}</div>
                 
                 <div className={styles.quantityControl}>
                   <button onClick={() => updateQuantity(item.productId, item.quantity - 1)}>-</button>
@@ -167,7 +167,7 @@ export default function CartPage() {
           <h2>Order Summary</h2>
           <div className={styles.summaryRow}>
             <span>Subtotal</span>
-            <span>${totalPrice.toFixed(2)}</span>
+            <span>৳{totalPrice.toFixed(2)}</span>
           </div>
           <div className={styles.summaryRow}>
             <span>Shipping</span>
@@ -175,7 +175,7 @@ export default function CartPage() {
           </div>
           <div className={styles.summaryTotal}>
             <span>Total</span>
-            <span>${totalPrice.toFixed(2)}</span>
+            <span>৳{totalPrice.toFixed(2)}</span>
           </div>
           
           {error && <div style={{ color: 'var(--accent)', fontSize: '0.9rem' }}>{error}</div>}

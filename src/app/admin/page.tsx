@@ -933,8 +933,8 @@ export default function AdminPage() {
                           <td><span className={styles.tableCatBadge}>{catName}</span></td>
                           <td>
                             <div className={styles.priceCell}>
-                              <span className={styles.currentPrice}>${discountPrice.toFixed(2)}</span>
-                              {p.discount > 0 && <span className={styles.originalPrice}>${p.price.toFixed(2)}</span>}
+                              <span className={styles.currentPrice}>৳{discountPrice.toFixed(2)}</span>
+                              {p.discount > 0 && <span className={styles.originalPrice}>৳{p.price.toFixed(2)}</span>}
                             </div>
                           </td>
                           <td>
@@ -1182,7 +1182,7 @@ export default function AdminPage() {
                         <td>
                           <span className={styles.tableCatBadge}>{o.items.length} item{o.items.length !== 1 ? "s" : ""}</span>
                         </td>
-                        <td><span className={styles.currentPrice}>${o.total.toFixed(2)}</span></td>
+                        <td><span className={styles.currentPrice}>৳{o.total.toFixed(2)}</span></td>
                         <td className={styles.grayText} style={{ fontSize: "0.82rem" }}>
                           {new Date(o.createdAt).toLocaleDateString()}
                         </td>

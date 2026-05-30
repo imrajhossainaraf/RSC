@@ -96,7 +96,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     offers: {
       "@type": "Offer",
       url: `${BASE_URL}/products/${product._id}`,
-      priceCurrency: "USD",
+      priceCurrency: "BDT",
       price: discountedPrice.toFixed(2),
       availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       seller: { "@type": "Organization", name: "Robotics Shop CTG" },
@@ -162,10 +162,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           )}
 
           <div className={styles.priceArea}>
-            <span className={styles.price}>${discountedPrice.toFixed(2)}</span>
+            <span className={styles.price}>৳{discountedPrice.toFixed(2)}</span>
             {product.discount > 0 && (
               <>
-                <span className={styles.originalPrice}>${product.price.toFixed(2)}</span>
+                <span className={styles.originalPrice}>৳{product.price.toFixed(2)}</span>
                 <span className={styles.discountBadge}>Save {product.discount}%</span>
               </>
             )}
@@ -260,7 +260,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                   </h4>
                   <div className={styles.relatedFooter}>
                     <span className={styles.relatedPrice}>
-                      ${(item.price - (item.price * (item.discount / 100))).toFixed(2)}
+                      ৳{(item.price - (item.price * (item.discount / 100))).toFixed(2)}
                     </span>
                     <Link href={`/products/${item._id.toString()}`} className={styles.relatedBtn}>
                       <ShoppingCartIcon width={14} height={14} />

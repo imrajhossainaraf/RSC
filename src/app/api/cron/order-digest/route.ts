@@ -31,8 +31,8 @@ function buildOrderBlock(order: PopulatedOrder, index: number): string {
         `<tr>
           <td style="padding:10px;border:1px solid #ddd;">${item.productName}</td>
           <td style="text-align:center;padding:10px;border:1px solid #ddd;">${item.quantity}</td>
-          <td style="text-align:right;padding:10px;border:1px solid #ddd;">$${item.priceAtPurchase.toFixed(2)}</td>
-          <td style="text-align:right;padding:10px;border:1px solid #ddd;"><strong>$${(item.quantity * item.priceAtPurchase).toFixed(2)}</strong></td>
+          <td style="text-align:right;padding:10px;border:1px solid #ddd;">৳${item.priceAtPurchase.toFixed(2)}</td>
+          <td style="text-align:right;padding:10px;border:1px solid #ddd;"><strong>৳${(item.quantity * item.priceAtPurchase).toFixed(2)}</strong></td>
         </tr>`
     )
     .join("");
@@ -57,7 +57,7 @@ function buildOrderBlock(order: PopulatedOrder, index: number): string {
         ${rows}
         <tr style="background:#f9f9f9;">
           <td colspan="3" style="text-align:right;padding:10px;border:1px solid #ddd;font-weight:bold;">ORDER TOTAL:</td>
-          <td style="text-align:right;padding:10px;border:1px solid #ddd;font-weight:bold;color:#27AE60;font-size:16px;">$${order.total.toFixed(2)}</td>
+          <td style="text-align:right;padding:10px;border:1px solid #ddd;font-weight:bold;color:#27AE60;font-size:16px;">৳${order.total.toFixed(2)}</td>
         </tr>
       </table>
     </div>`;
@@ -94,7 +94,7 @@ export async function GET(req: Request) {
       <h1 style="border-bottom:2px solid #27AE60;padding-bottom:12px;">Order Digest</h1>
       <p style="font-size:15px;">
         <strong>${pendingOrders.length} new order${pendingOrders.length > 1 ? "s" : ""}</strong>
-        received. Combined total: <strong style="color:#27AE60;">$${grandTotal.toFixed(2)}</strong>
+        received. Combined total: <strong style="color:#27AE60;">৳${grandTotal.toFixed(2)}</strong>
       </p>
       ${orderBlocks}
       <hr style="border:none;border-top:1px solid #ddd;margin:30px 0;">
@@ -103,7 +103,7 @@ export async function GET(req: Request) {
 
   await sendMail({
     to: adminRecipient,
-    subject: `Order Digest — ${pendingOrders.length} new order${pendingOrders.length > 1 ? "s" : ""} ($${grandTotal.toFixed(2)})`,
+    subject: `Order Digest — ${pendingOrders.length} new order${pendingOrders.length > 1 ? "s" : ""} (৳${grandTotal.toFixed(2)})`,
     html,
   });
 
