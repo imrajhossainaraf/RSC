@@ -28,17 +28,21 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_KEY = "cart";
 const listeners = new Set<() => void>();
+let cachedCart: CartItem[] | null = null;
 
 function readCart(): CartItem[] {
+  if (cachedCart !== null) return cachedCart;
   try {
     const stored = localStorage.getItem(CART_KEY);
-    return stored ? (JSON.parse(stored) as CartItem[]) : [];
+    cachedCart = stored ? (JSON.parse(stored) as CartItem[]) : [];
   } catch {
-    return [];
+    cachedCart = [];
   }
+  return cachedCart;
 }
 
 function writeCart(cart: CartItem[]) {
+  cachedCart = cart;
   try {
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
   } catch {}
