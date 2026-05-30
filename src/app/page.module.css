@@ -147,36 +147,60 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .productGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
   }
 
   .cardImageContainer {
-    height: 150px;
+    height: 140px;
   }
 
   .cardInfo {
-    padding: 0.75rem;
+    padding: 0.7rem;
+    gap: 5px;
   }
 
   .productTitle {
-    font-size: 0.85rem;
-    margin-bottom: 0.5rem;
+    font-size: 0.82rem;
+    line-height: 1.25;
+    margin-bottom: 0;
   }
 
   .price {
-    font-size: 1rem;
+    font-size: 0.95rem;
+  }
+
+  .originalPrice {
+    font-size: 0.72rem;
   }
 
   .productCategory {
     font-size: 0.65rem;
   }
 
-  .orderBtn {
-    width: 34px;
-    height: 34px;
+  .discountBadge {
+    font-size: 0.62rem;
+    padding: 2px 5px;
+    top: 6px;
+    right: 6px;
+  }
+
+  .cardFooter {
+    gap: 4px;
+    margin-top: 0.4rem;
+    min-width: 0;
+  }
+
+  .cardFooter :global(.btn-orange) {
+    padding: 6px 8px;
+    font-size: 0.72rem;
+    gap: 3px;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }
 
@@ -241,6 +265,7 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  gap: 6px;
 }
 
 .productCategory {
@@ -292,11 +317,12 @@
   margin-left: 6px;
 }
 
-.productFooter {
+.priceRow {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
   margin-top: auto;
+  padding-top: 4px;
 }
 
 .price {
@@ -309,25 +335,13 @@
   text-decoration: line-through;
   color: #94a3b8;
   font-size: 0.9rem;
-  margin-left: 8px;
 }
 
-.orderBtn {
-  display: inline-flex;
+.cardFooter {
+  display: flex;
+  gap: 8px;
   align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: #f1f5f9;
-  color: #475569;
-  border-radius: var(--radius-md);
-  transition: all 0.2s ease;
-}
-
-.productCard:hover .orderBtn {
-  background: var(--primary);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  margin-top: 0.75rem;
 }
 
 /* ── Features Banner ── */

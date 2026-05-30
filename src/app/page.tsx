@@ -4,7 +4,7 @@ import dbConnect from '@/lib/mongodb';
 import Product from '@/models/Product';
 import '@/models/Category'; // registers the Category schema so populate() works
 import styles from './page.module.css';
-import { ShoppingCartIcon, TruckIcon, SparklesIcon, ShieldCheckIcon, PhoneIcon, CpuChipIcon } from '@heroicons/react/24/outline';
+import { TruckIcon, SparklesIcon, ShieldCheckIcon, PhoneIcon, CpuChipIcon } from '@heroicons/react/24/outline';
 import WishlistButton from '@/components/WishlistButton';
 import HowItWorks from '@/components/HowItWorks';
 
@@ -123,36 +123,31 @@ export default async function Home() {
                     <span className={styles.ratingCount}>({product.reviewCount})</span>
                   )}
                 </div>
-                <div className={styles.productFooter}>
-                  <div>
-                    <span className={styles.price}>
-                      ৳
-                      {(
-                        product.price -
-                        product.price * (product.discount / 100)
-                      ).toFixed(2)}
+                <div className={styles.priceRow}>
+                  <span className={styles.price}>
+                    ৳{(product.price - product.price * (product.discount / 100)).toFixed(2)}
+                  </span>
+                  {product.discount > 0 && (
+                    <span className={styles.originalPrice}>
+                      ৳{product.price.toFixed(2)}
                     </span>
-                    {product.discount > 0 && (
-                      <span className={styles.originalPrice}>
-                        ৳{product.price.toFixed(2)}
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <WishlistButton
-                      productId={product._id.toString()}
-                      name={product.name}
-                      price={product.price - product.price * (product.discount / 100)}
-                      image={product.image ?? ''}
-                      stock={product.stock ?? 0}
-                    />
-                    <Link
-                      href={`/products/${product._id.toString()}`}
-                      className={styles.orderBtn}
-                    >
-                      <ShoppingCartIcon width={16} height={16} />
-                    </Link>
-                  </div>
+                  )}
+                </div>
+                <div className={styles.cardFooter}>
+                  <Link
+                    href={`/products/${product._id.toString()}`}
+                    className="btn-orange"
+                    style={{ flex: 1, justifyContent: 'center' }}
+                  >
+                    Order Now
+                  </Link>
+                  <WishlistButton
+                    productId={product._id.toString()}
+                    name={product.name}
+                    price={product.price - product.price * (product.discount / 100)}
+                    image={product.image ?? ''}
+                    stock={product.stock ?? 0}
+                  />
                 </div>
               </div>
             </div>
