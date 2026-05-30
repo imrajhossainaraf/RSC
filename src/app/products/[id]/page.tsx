@@ -13,7 +13,7 @@ import {
 
 import type { Metadata } from "next";
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 const BASE_URL = "https://roboticsshopctg.com";
 
@@ -76,7 +76,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const related = (await getRelatedProducts(product.category._id.toString(), product._id.toString())) as any[];
+  const categoryId = (product.category as any)?._id?.toString() ?? null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const related = categoryId ? (await getRelatedProducts(categoryId, product._id.toString())) as any[] : [];
   const discountedPrice = product.price - (product.price * (product.discount / 100));
 
   // Transform specs map to object/entries safely
