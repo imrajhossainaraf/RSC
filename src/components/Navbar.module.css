@@ -58,9 +58,10 @@
 
 .logoMain {
   font-family: var(--font-heading);
-  font-size: 0.9rem;
-  color: #64748b;
-  font-style: italic;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: -0.01em;
 }
 
 /* ── Desktop search ── */
@@ -252,12 +253,13 @@
     gap: 0.5rem;
   }
 
-  /* Show "RSC" short name, hide full name */
+  /* Hide short name, show full name on mobile */
   .logoShort {
-    display: block;
+    display: none;
   }
   .logoMain {
-    display: none;
+    display: block;
+    font-size: 0.9rem;
   }
 
   /* Hide desktop search bar and right nav */
