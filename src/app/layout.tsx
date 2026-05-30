@@ -42,6 +42,11 @@ export const metadata: Metadata = {
   creator: "Robotics Shop CTG",
   publisher: "Robotics Shop CTG",
   alternates: { canonical: BASE_URL },
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png" }],
+    apple: [{ url: "/icon.png", type: "image/png" }],
+    shortcut: "/icon.png",
+  },
   openGraph: {
     title: "Robotics Shop CTG — Electronics & Components",
     description: "Premium electronic components, development boards, sensors, and robotics supplies in Chittagong, Bangladesh.",
@@ -49,7 +54,7 @@ export const metadata: Metadata = {
     siteName: "Robotics Shop CTG",
     images: [
       {
-        url: "/images/ChatGPT Image May 28, 2026, 09_02_11 PM.png",
+        url: "/images/logo.png",
         width: 512,
         height: 512,
         alt: "Robotics Shop CTG Logo",
@@ -62,7 +67,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Robotics Shop CTG — Electronics & Components",
     description: "Premium electronic components and robotics supplies in Chittagong, Bangladesh.",
-    images: ["/images/ChatGPT Image May 28, 2026, 09_02_11 PM.png"],
+    images: ["/images/logo.png"],
   },
   robots: {
     index: true,
