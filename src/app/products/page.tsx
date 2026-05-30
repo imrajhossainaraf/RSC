@@ -41,7 +41,7 @@ function ProductsContent() {
 
   const [sort, setSort] = useState('newest');
   const [minPrice, setMinPrice] = useState('0');
-  const [maxPrice, setMaxPrice] = useState('500');
+  const [maxPrice, setMaxPrice] = useState('99999');
   const [inStock, setInStock] = useState(false);
 
   useEffect(() => {
@@ -103,7 +103,7 @@ function ProductsContent() {
   const clearFilters = () => {
     setSort('newest');
     setMinPrice('0');
-    setMaxPrice('500');
+    setMaxPrice('99999');
     setInStock(false);
     handleCategoryClick('');
     setFilterOpen(false);
@@ -113,7 +113,7 @@ function ProductsContent() {
     !!activeCategorySlug,
     inStock,
     sort !== 'newest',
-    minPrice !== '0' || maxPrice !== '500',
+    minPrice !== '0' || maxPrice !== '99999',
   ].filter(Boolean).length;
 
   return (
@@ -210,7 +210,7 @@ function ProductsContent() {
             </div>
 
             <div className={styles.filterItem}>
-              <label className={styles.filterLabel}>Price ($)</label>
+              <label className={styles.filterLabel}>Price (৳)</label>
               <div className={styles.priceRangeInputs}>
                 <input
                   type="number"

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useCallback, useSyncExternalStore, ReactNode } from "react";
 
 export type CartItem = {
   productId: string;
@@ -22,59 +22,70 @@ type CartContextType = {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+// ── External localStorage store ──────────────────────────────────────────────
+// useSyncExternalStore is the React 18+ API for external stores. It provides
+// a server snapshot (empty) for SSR, eliminating hydration mismatches.
+
+const CART_KEY = "cart";
+const listeners = new Set<() => void>();
+
+function readCart(): CartItem[] {
+  try {
+    const stored = localStorage.getItem(CART_KEY);
+    return stored ? (JSON.parse(stored) as CartItem[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeCart(cart: CartItem[]) {
+  try {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  } catch {}
+  listeners.forEach((l) => l());
+}
+
+function subscribeCart(listener: () => void) {
+  listeners.add(listener);
+  return () => { listeners.delete(listener); };
+}
+
+const serverCart: CartItem[] = [];
+
+// ── Provider ─────────────────────────────────────────────────────────────────
+
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    if (typeof window === "undefined") {
-      return [];
-    }
+  const cart = useSyncExternalStore(subscribeCart, readCart, () => serverCart);
 
-    try {
-      const savedCart = window.localStorage.getItem("cart");
-      return savedCart ? JSON.parse(savedCart) : [];
-    } catch (error) {
-      console.error("Failed to parse saved cart", error);
-      return [];
-    }
-  });
+  const addToCart = useCallback((newItem: CartItem) => {
+    const current = readCart();
+    const existing = current.find((item) => item.productId === newItem.productId);
+    writeCart(
+      existing
+        ? current.map((item) =>
+            item.productId === newItem.productId
+              ? { ...item, quantity: item.quantity + newItem.quantity }
+              : item
+          )
+        : [...current, newItem]
+    );
+  }, []);
 
-  // Save to localStorage when cart changes
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
+  const removeFromCart = useCallback((productId: string) => {
+    writeCart(readCart().filter((item) => item.productId !== productId));
+  }, []);
 
-    window.localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
-
-  const addToCart = (newItem: CartItem) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item.productId === newItem.productId);
-      if (existing) {
-        return prev.map((item) =>
-          item.productId === newItem.productId
-            ? { ...item, quantity: item.quantity + newItem.quantity }
-            : item
-        );
-      }
-      return [...prev, newItem];
-    });
-  };
-
-  const removeFromCart = (productId: string) => {
-    setCart((prev) => prev.filter((item) => item.productId !== productId));
-  };
-
-  const updateQuantity = (productId: string, quantity: number) => {
-    setCart((prev) =>
-      prev.map((item) =>
+  const updateQuantity = useCallback((productId: string, quantity: number) => {
+    writeCart(
+      readCart().map((item) =>
         item.productId === productId ? { ...item, quantity: Math.max(1, quantity) } : item
       )
     );
-  };
+  }, []);
 
-  const clearCart = () => {
-    setCart([]);
-  };
+  const clearCart = useCallback(() => {
+    writeCart([]);
+  }, []);
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);

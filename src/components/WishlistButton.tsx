@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { HeartIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartSolid } from "@heroicons/react/24/solid";
 import { toast } from "sonner";
@@ -15,11 +15,12 @@ type Props = {
 };
 
 export default function WishlistButton({ productId, name, price, image, stock }: Props) {
-  const [saved, setSaved] = useState(() => {
-    if (typeof window === "undefined") return false;
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
     const wishlist: Props[] = JSON.parse(localStorage.getItem("wishlist") ?? "[]");
-    return wishlist.some((i) => i.productId === productId);
-  });
+    setSaved(wishlist.some((i) => i.productId === productId));
+  }, [productId]);
 
   const toggle = (e: React.MouseEvent) => {
     e.preventDefault();
