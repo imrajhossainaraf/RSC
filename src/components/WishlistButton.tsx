@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useSyncExternalStore } from "react";
 import { HeartIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartSolid } from "@heroicons/react/24/solid";
 import { toast } from "sonner";
@@ -14,28 +14,46 @@ type Props = {
   stock: number;
 };
 
-export default function WishlistButton({ productId, name, price, image, stock }: Props) {
-  const [saved, setSaved] = useState(false);
+const listeners = new Set<() => void>();
+let cachedWishlist: Props[] | null = null;
 
-  useEffect(() => {
-    const wishlist: Props[] = JSON.parse(localStorage.getItem("wishlist") ?? "[]");
-    setSaved(wishlist.some((i) => i.productId === productId));
-  }, [productId]);
+function readWishlist(): Props[] {
+  if (cachedWishlist !== null) return cachedWishlist;
+  try {
+    cachedWishlist = JSON.parse(localStorage.getItem("wishlist") ?? "[]") as Props[];
+  } catch {
+    cachedWishlist = [];
+  }
+  return cachedWishlist;
+}
+
+function writeWishlist(wishlist: Props[]) {
+  cachedWishlist = wishlist;
+  try {
+    localStorage.setItem("wishlist", JSON.stringify(wishlist));
+  } catch {}
+  listeners.forEach((l) => l());
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => { listeners.delete(listener); };
+}
+
+const serverWishlist: Props[] = [];
+
+export default function WishlistButton({ productId, name, price, image, stock }: Props) {
+  const wishlist = useSyncExternalStore(subscribe, readWishlist, () => serverWishlist);
+  const saved = wishlist.some((i) => i.productId === productId);
 
   const toggle = (e: React.MouseEvent) => {
     e.preventDefault();
-    const wishlist: Props[] = JSON.parse(localStorage.getItem("wishlist") ?? "[]");
-    let updated: Props[];
+    const current = readWishlist();
     if (saved) {
-      updated = wishlist.filter((i) => i.productId !== productId);
-    } else {
-      updated = [...wishlist, { productId, name, price, image, stock }];
-    }
-    localStorage.setItem("wishlist", JSON.stringify(updated));
-    setSaved(!saved);
-    if (saved) {
+      writeWishlist(current.filter((i) => i.productId !== productId));
       toast.info(`${name} removed from wishlist`);
     } else {
+      writeWishlist([...current, { productId, name, price, image, stock }]);
       toast.success(`${name} added to wishlist`);
     }
   };
