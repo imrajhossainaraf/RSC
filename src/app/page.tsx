@@ -19,9 +19,7 @@ async function getFeaturedProducts() {
 
 export default async function Home() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const raw = (await getFeaturedProducts()) as any[];
-  const displayCount = Math.floor(Math.min(raw.length, 16) / 4) * 4;
-  const products = raw.slice(0, displayCount);
+  const products = (await getFeaturedProducts()) as any[];
 
 
   return (
