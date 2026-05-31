@@ -155,6 +155,12 @@ export default async function Home() {
             </div>
           ))}
         </div>
+
+        <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+          <Link href="/products" className="btn-primary">
+            All Products
+          </Link>
+        </div>
       </section>
       )}
 
