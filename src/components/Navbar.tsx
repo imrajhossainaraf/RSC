@@ -82,7 +82,7 @@ export default function Navbar() {
             />
             <div className={styles.logoText}>
               <span className={styles.logoShort}>RSC</span>
-              <span className={styles.logoMain}>Robotics Shop Ctg</span>
+              <span className={styles.logoMain}>Robotics Shop CTG</span>
             </div>
           </Link>
         </div>
