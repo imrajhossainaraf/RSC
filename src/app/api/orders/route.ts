@@ -4,6 +4,7 @@ import { authOptions } from "../auth/[...nextauth]/route";
 import dbConnect from "@/lib/mongodb";
 import Order from "@/models/Order";
 import Product from "@/models/Product";
+import Settings from "@/models/Settings";
 import User from "@/models/User";
 import { sendMail } from "@/lib/mailer";
 import { isValidObjectId, sanitizeString } from "@/lib/validation";
@@ -16,6 +17,7 @@ type OrderItemPayload = {
 };
 
 type BuyerDetailsPayload = Record<string, unknown>;
+
 
 type ProductDoc = {
   _id: { toString(): string };
@@ -49,6 +51,7 @@ export async function POST(req: Request) {
     const payload = (await req.json()) as Record<string, unknown>;
     const items = Array.isArray(payload.items) ? (payload.items as OrderItemPayload[]) : [];
     const buyerDetails = (payload.buyerDetails as BuyerDetailsPayload | undefined) ?? {};
+    const shippingZone = payload.shippingZone === "outside" ? "outside" : "inside";
 
     if (!items.length) {
       return NextResponse.json({ message: "Cart is empty." }, { status: 400 });
@@ -59,9 +62,8 @@ export async function POST(req: Request) {
     const buyerPhone = sanitizeString(buyerDetails.phone);
     const address = sanitizeString(buyerDetails.address);
     const city = sanitizeString(buyerDetails.city);
-    const zipCode = sanitizeString(buyerDetails.zipCode);
 
-    if (!buyerName || !buyerEmail || !buyerPhone || !address || !city || !zipCode) {
+    if (!buyerName || !buyerEmail || !buyerPhone || !address || !city) {
       return NextResponse.json({ message: "All buyer and shipping details are required." }, { status: 400 });
     }
 
@@ -113,23 +115,32 @@ export async function POST(req: Request) {
       };
     });
 
+    // Fetch shipping fee server-side based on zone
+    const feeSettings = await Settings.find({ key: { $in: ["shippingFeeInside", "shippingFeeOutside"] } });
+    const feeInside = Number(feeSettings.find((s: { key: string; value: string }) => s.key === "shippingFeeInside")?.value ?? 50);
+    const feeOutside = Number(feeSettings.find((s: { key: string; value: string }) => s.key === "shippingFeeOutside")?.value ?? 150);
+    const shippingFee = shippingZone === "outside" ? feeOutside : feeInside;
+
     // Calculate total server-side — never trust client total
-    const serverTotal = parseFloat(
+    const itemsTotal = parseFloat(
       orderItems.reduce((sum, i) => sum + i.priceAtPurchase * i.quantity, 0).toFixed(2)
     );
+    const serverTotal = parseFloat((itemsTotal + shippingFee).toFixed(2));
 
     const order = await Order.create({
       user: sessionUser.id,
-      buyerDetails: { name: buyerName, email: buyerEmail, phone: buyerPhone, address, city, zipCode },
+      buyerDetails: { name: buyerName, email: buyerEmail, phone: buyerPhone, address, city },
       items: orderItems,
       total: serverTotal,
+      shippingFee,
+      shippingZone,
     });
 
     // Send order confirmation to customer (non-blocking)
     sendMail({
       to: buyerEmail,
       subject: `Order Confirmed — Robotics Shop CTG (#${order._id})`,
-      html: buildConfirmationEmail(buyerName, order._id.toString(), orderItems, serverTotal),
+      html: buildConfirmationEmail(buyerName, order._id.toString(), orderItems, itemsTotal, shippingFee, shippingZone),
     }).catch((err) => console.warn("Order confirmation email failed:", err));
 
     return NextResponse.json({ message: "Order placed successfully.", orderId: order._id }, { status: 201 });
@@ -177,8 +188,11 @@ function buildConfirmationEmail(
   name: string,
   orderId: string,
   items: { productName: string; quantity: number; priceAtPurchase: number }[],
-  total: number
+  subtotal: number,
+  shippingFee: number,
+  shippingZone: string,
 ): string {
+  const total = subtotal + shippingFee;
   const rows = items
     .map(
       (i) => `<tr>
@@ -210,6 +224,10 @@ function buildConfirmationEmail(
           </thead>
           <tbody>${rows}</tbody>
           <tfoot>
+            <tr>
+              <td colspan="3" style="padding:10px;border:1px solid #e2e8f0;text-align:right;">Shipping (COD — ${shippingZone === "outside" ? "Outside Chottogram" : "Inside Chottogram"})</td>
+              <td style="padding:10px;border:1px solid #e2e8f0;text-align:right;">৳${shippingFee.toFixed(2)}</td>
+            </tr>
             <tr style="background:#f8fafc;">
               <td colspan="3" style="padding:12px;border:1px solid #e2e8f0;text-align:right;font-weight:bold;">TOTAL</td>
               <td style="padding:12px;border:1px solid #e2e8f0;text-align:right;font-weight:bold;color:#7c3aed;font-size:1.1rem;">৳${total.toFixed(2)}</td>

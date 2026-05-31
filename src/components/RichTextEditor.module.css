@@ -1,0 +1,158 @@
+.wrapper {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--secondary);
+  overflow: hidden;
+  transition: outline 0.15s;
+}
+
+.wrapper:focus-within {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--card-bg);
+}
+
+.toolbar button {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  color: var(--foreground);
+  cursor: pointer;
+  line-height: 1;
+  min-width: 28px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.toolbar button:hover {
+  background: var(--secondary);
+  border-color: var(--border);
+}
+
+.active {
+  background: var(--primary) !important;
+  color: white !important;
+  border-color: var(--primary) !important;
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.colorGroup {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.colorDot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  padding: 0;
+  border: 2px solid transparent !important;
+  min-width: unset !important;
+  cursor: pointer;
+}
+
+.colorDotActive {
+  border-color: var(--foreground) !important;
+  transform: scale(1.2);
+}
+
+.clearBtn {
+  font-size: 0.75rem;
+  color: #94a3b8 !important;
+}
+
+/* Editor content area */
+.editorContent {
+  min-height: 120px;
+  padding: 12px 14px;
+  outline: none;
+  font-size: 0.95rem;
+  color: var(--foreground);
+  line-height: 1.7;
+}
+
+.editorContent:empty::before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+/* Prose styles inside editor */
+:global(.tiptap) {
+  min-height: 120px;
+  padding: 12px 14px;
+  outline: none;
+  font-size: 0.95rem;
+  color: var(--foreground);
+  line-height: 1.7;
+}
+
+:global(.tiptap p) {
+  margin: 0 0 0.5em;
+}
+
+:global(.tiptap p:last-child) {
+  margin-bottom: 0;
+}
+
+:global(.tiptap h1) {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0.8em 0 0.4em;
+}
+
+:global(.tiptap h2) {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0.6em 0 0.3em;
+}
+
+:global(.tiptap h3) {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0.5em 0 0.25em;
+}
+
+:global(.tiptap ul),
+:global(.tiptap ol) {
+  padding-left: 1.5em;
+  margin: 0.4em 0;
+}
+
+:global(.tiptap li) {
+  margin: 0.2em 0;
+}
+
+:global(.tiptap strong) {
+  font-weight: 700;
+}
+
+:global(.tiptap em) {
+  font-style: italic;
+}
+
+:global(.tiptap u) {
+  text-decoration: underline;
+}
+
+:global(.tiptap s) {
+  text-decoration: line-through;
+}

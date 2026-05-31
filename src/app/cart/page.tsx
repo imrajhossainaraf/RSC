@@ -10,6 +10,27 @@ import { TrashIcon } from '@heroicons/react/24/outline';
 import { toast } from 'sonner';
 import styles from './page.module.css';
 
+const DIVISIONS = [
+  { name: 'Barishal',   inside: false },
+  { name: 'Chattogram', inside: true  },
+  { name: 'Dhaka',      inside: false },
+  { name: 'Khulna',     inside: false },
+  { name: 'Mymensingh', inside: false },
+  { name: 'Rajshahi',   inside: false },
+  { name: 'Rangpur',    inside: false },
+  { name: 'Sylhet',     inside: false },
+];
+
+const CTG_PATTERN = /\bctg\b|chittagong|chottogram|chattogram/i;
+
+function detectZone(division: string, address: string, city: string): 'inside' | 'outside' | null {
+  if (division) {
+    return DIVISIONS.find(d => d.name === division)?.inside ? 'inside' : 'outside';
+  }
+  if (!address.trim() && !city.trim()) return null;
+  return CTG_PATTERN.test(address) || CTG_PATTERN.test(city) ? 'inside' : 'outside';
+}
+
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, clearCart, totalPrice } = useCart();
   const { data: session, status } = useSession();
@@ -23,17 +44,39 @@ export default function CartPage() {
     city: '',
     zipCode: ''
   });
+  const [division, setDivision] = useState('');
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [error, setError] = useState('');
+  const [shippingFees, setShippingFees] = useState({ inside: 50, outside: 150 });
+
+  useEffect(() => {
+    fetch('/api/shipping-fees')
+      .then(r => r.json() as Promise<{ inside: number; outside: number }>)
+      .then(data => setShippingFees(data))
+      .catch(() => {});
+  }, []);
+
+  const handleDivisionChange = (div: string) => {
+    setDivision(div);
+    if (div) {
+      setBuyerDetails(prev => ({ ...prev, city: prev.city || div }));
+    }
+  };
+
+  const shippingZone = detectZone(division, buyerDetails.address, buyerDetails.city);
+  const shippingFee = shippingZone === 'inside' ? shippingFees.inside
+    : shippingZone === 'outside' ? shippingFees.outside
+    : 0;
+  const finalTotal = totalPrice + shippingFee;
 
   const isBuyerComplete =
+    division !== '' &&
     buyerDetails.name.trim() !== '' &&
     buyerDetails.email.trim() !== '' &&
     buyerDetails.phone.trim() !== '' &&
     buyerDetails.address.trim() !== '' &&
-    buyerDetails.city.trim() !== '' &&
-    buyerDetails.zipCode.trim() !== '';
+    buyerDetails.city.trim() !== '';
 
   useEffect(() => {
     if (session?.user) {
@@ -51,7 +94,7 @@ export default function CartPage() {
     }
   }, [session]);
 
-  const handleCheckout = async (e: React.FormEvent) => {
+  const handleCheckout = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (status === 'loading') {
@@ -78,8 +121,9 @@ export default function CartPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: cart,
-          buyerDetails,
-          total: totalPrice,
+          buyerDetails: { ...buyerDetails, division },
+          shippingZone: shippingZone ?? 'outside',
+          total: finalTotal,
         })
       });
 
@@ -128,7 +172,7 @@ export default function CartPage() {
   return (
     <div className={styles.cartContainer}>
       <h1 className={styles.cartHeader}>Your Cart</h1>
-      
+
       <div className={styles.cartLayout}>
         <div className={styles.cartItems}>
           {cart.map((item) => (
@@ -148,14 +192,14 @@ export default function CartPage() {
                   {item.name}
                 </Link>
                 <div className={styles.itemPrice}>৳{item.price.toFixed(2)}</div>
-                
+
                 <div className={styles.quantityControl}>
                   <button onClick={() => updateQuantity(item.productId, item.quantity - 1)}>-</button>
                   <span>{item.quantity}</span>
                   <button onClick={() => updateQuantity(item.productId, item.quantity + 1)}>+</button>
                 </div>
               </div>
-              
+
               <button onClick={() => removeFromCart(item.productId)} className={styles.removeBtn} aria-label="Remove item">
                 <TrashIcon width={24} height={24} />
               </button>
@@ -165,19 +209,43 @@ export default function CartPage() {
 
         <div className={styles.summary}>
           <h2>Order Summary</h2>
+
+          {/* Division Dropdown */}
+          <div className={styles.divisionGroup}>
+            <label className={styles.divisionLabel}>Select Division <span style={{ color: '#ef4444' }}>*</span></label>
+            <select
+              className={styles.divisionSelect}
+              value={division}
+              onChange={e => handleDivisionChange(e.target.value)}
+              required
+            >
+              <option value="">— Choose your division —</option>
+              {DIVISIONS.map(d => (
+                <option key={d.name} value={d.name}>{d.name}</option>
+              ))}
+            </select>
+          </div>
+
           <div className={styles.summaryRow}>
             <span>Subtotal</span>
             <span>৳{totalPrice.toFixed(2)}</span>
           </div>
           <div className={styles.summaryRow}>
-            <span>Shipping</span>
-            <span>Free (COD/Manual)</span>
+            <span>
+              Shipping (COD)
+              {shippingZone && (
+                <span className={`${styles.zoneBadge} ${shippingZone === 'inside' ? styles.zoneBadgeInside : styles.zoneBadgeOutside}`}>
+                  {shippingZone === 'inside' ? 'Inside Chattogram' : 'Outside Chattogram'}
+                </span>
+              )}
+            </span>
+            <span>{shippingZone ? `৳${shippingFee.toFixed(2)}` : '—'}</span>
           </div>
           <div className={styles.summaryTotal}>
             <span>Total</span>
-            <span>৳{totalPrice.toFixed(2)}</span>
+            <span>৳{finalTotal.toFixed(2)}</span>
           </div>
-          
+
           {error && <div style={{ color: 'var(--accent)', fontSize: '0.9rem' }}>{error}</div>}
 
           {status === 'authenticated' ? (
@@ -230,19 +298,10 @@ export default function CartPage() {
                   type="text"
                   value={buyerDetails.city}
                   onChange={e => setBuyerDetails({ ...buyerDetails, city: e.target.value })}
-                  placeholder="Dhaka"
+                  placeholder="Chattogram"
                 />
               </div>
-              <div className={styles.formGroup}>
-                <label>Zip Code</label>
-                <input
-                  required
-                  type="text"
-                  value={buyerDetails.zipCode}
-                  onChange={e => setBuyerDetails({ ...buyerDetails, zipCode: e.target.value })}
-                  placeholder="1207"
-                />
-              </div>
+
               <button
                 type="submit"
                 className={`btn-primary ${styles.checkoutBtn}`}

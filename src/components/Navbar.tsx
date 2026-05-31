@@ -75,6 +75,8 @@ export default function Navbar() {
               alt="Robotics Shop CTG logo"
               width={64}
               height={64}
+              loading="eager"
+              priority
               className={styles.logoIcon}
             />
             <div className={styles.logoText}>

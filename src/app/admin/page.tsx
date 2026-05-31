@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import styles from "./page.module.css";
+import RichTextEditor from "@/components/RichTextEditor";
 import {
   BriefcaseIcon,
   CpuChipIcon,
@@ -114,6 +115,13 @@ export default function AdminPage() {
   const [fromEmailLoading, setFromEmailLoading] = useState(false);
   const [fromEmailMessage, setFromEmailMessage] = useState({ text: "", isError: false });
 
+  const [shippingFeeInside, setShippingFeeInside] = useState(50);
+  const [shippingFeeOutside, setShippingFeeOutside] = useState(150);
+  const [shippingFeeInsideInput, setShippingFeeInsideInput] = useState("50");
+  const [shippingFeeOutsideInput, setShippingFeeOutsideInput] = useState("150");
+  const [shippingFeeLoading, setShippingFeeLoading] = useState(false);
+  const [shippingFeeMessage, setShippingFeeMessage] = useState({ text: "", isError: false });
+
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [adminsLoading, setAdminsLoading] = useState(false);
   const [addAdminEmail, setAddAdminEmail] = useState("");
@@ -200,13 +208,17 @@ export default function AdminPage() {
     Promise.resolve()
       .then(() => { if (!cancelled) setAdminsLoading(true); })
       .then(() => Promise.all([
-        fetch("/api/admin/settings").then(r => r.json() as Promise<{ fromEmail: string }>),
+        fetch("/api/admin/settings").then(r => r.json() as Promise<{ fromEmail: string; shippingFeeInside: number; shippingFeeOutside: number }>),
         fetch("/api/admin/admins").then(r => r.json() as Promise<AdminUser[]>),
       ]))
       .then(([s, a]) => {
         if (cancelled) return;
         setFromEmail(s.fromEmail ?? "");
         setFromEmailInput(s.fromEmail ?? "");
+        setShippingFeeInside(s.shippingFeeInside ?? 50);
+        setShippingFeeOutside(s.shippingFeeOutside ?? 150);
+        setShippingFeeInsideInput(String(s.shippingFeeInside ?? 50));
+        setShippingFeeOutsideInput(String(s.shippingFeeOutside ?? 150));
         if (Array.isArray(a)) setAdmins(a);
       })
       .catch(err => console.error("Failed to load settings:", err))
@@ -235,6 +247,38 @@ export default function AdminPage() {
       setFromEmailMessage({ text: "Network error.", isError: true });
     } finally {
       setFromEmailLoading(false);
+    }
+  };
+
+  const handleShippingFeeSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setShippingFeeLoading(true);
+    setShippingFeeMessage({ text: "", isError: false });
+    const inside = Number(shippingFeeInsideInput);
+    const outside = Number(shippingFeeOutsideInput);
+    if (isNaN(inside) || inside < 0 || isNaN(outside) || outside < 0) {
+      setShippingFeeMessage({ text: "Shipping fees must be non-negative numbers.", isError: true });
+      setShippingFeeLoading(false);
+      return;
+    }
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shippingFeeInside: inside, shippingFeeOutside: outside }),
+      });
+      const data = await res.json() as { message: string };
+      if (res.ok) {
+        setShippingFeeInside(inside);
+        setShippingFeeOutside(outside);
+        setShippingFeeMessage({ text: "Shipping fees saved successfully.", isError: false });
+      } else {
+        setShippingFeeMessage({ text: data.message || "Failed to save.", isError: true });
+      }
+    } catch {
+      setShippingFeeMessage({ text: "Network error.", isError: true });
+    } finally {
+      setShippingFeeLoading(false);
     }
   };
 
@@ -285,6 +329,10 @@ export default function AdminPage() {
   // Handle Add or Edit Product Form Submission
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!productForm.description.replace(/<[^>]+>/g, "").trim()) {
+      setProductMessage({ text: "Component overview / specs is required.", isError: true });
+      return;
+    }
     setProductActionLoading(true);
     setProductMessage({ text: "", isError: false });
 
@@ -755,12 +803,10 @@ export default function AdminPage() {
 
               <div className={styles.formGroup} style={{ gridColumn: "span 2" }}>
                 <label>Component Overview & Specs *</label>
-                <textarea 
-                  required 
-                  rows={3} 
-                  value={productForm.description} 
-                  onChange={e => setProductForm({...productForm, description: e.target.value})} 
-                  placeholder="Provide pinouts, voltage details, sensor data, or general description..." 
+                <RichTextEditor
+                  value={productForm.description}
+                  onChange={html => setProductForm(prev => ({ ...prev, description: html }))}
+                  placeholder="Provide pinouts, voltage details, sensor data, or general description..."
                 />
               </div>
 
@@ -1240,6 +1286,59 @@ export default function AdminPage() {
             </div>
           ) : (
             <div className={styles.settingsGrid}>
+
+              {/* Shipping Fees */}
+              <div className={`${styles.settingsCard} glass-card`}>
+                <div className={styles.settingsCardHeader}>
+                  <Cog6ToothIcon width={22} height={22} />
+                  <h3>Shipping Fees (COD)</h3>
+                </div>
+                <p className={styles.settingsCardDesc}>
+                  Set delivery charges for each zone. Currently: Inside ৳{shippingFeeInside} / Outside ৳{shippingFeeOutside}.
+                </p>
+
+                {shippingFeeMessage.text && (
+                  <div className={`${styles.alert} ${shippingFeeMessage.isError ? styles.alertError : styles.alertSuccess}`} style={{ marginBottom: "1rem" }}>
+                    {shippingFeeMessage.isError
+                      ? <ExclamationTriangleIcon width={18} height={18} />
+                      : <CheckIcon width={18} height={18} />}
+                    <span>{shippingFeeMessage.text}</span>
+                    <button onClick={() => setShippingFeeMessage({ text: "", isError: false })} className={styles.alertClose}>
+                      <XMarkIcon width={14} height={14} />
+                    </button>
+                  </div>
+                )}
+
+                <form onSubmit={handleShippingFeeSave} className={styles.settingsForm}>
+                  <div className={styles.formGroup}>
+                    <label>Inside Chottogram (৳)</label>
+                    <input
+                      required
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={shippingFeeInsideInput}
+                      onChange={e => setShippingFeeInsideInput(e.target.value)}
+                      placeholder="50"
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>Outside Chottogram (৳)</label>
+                    <input
+                      required
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={shippingFeeOutsideInput}
+                      onChange={e => setShippingFeeOutsideInput(e.target.value)}
+                      placeholder="150"
+                    />
+                  </div>
+                  <button type="submit" className="btn-primary" disabled={shippingFeeLoading}>
+                    {shippingFeeLoading ? "Saving..." : "Save Fees"}
+                  </button>
+                </form>
+              </div>
 
               {/* From Email */}
               <div className={`${styles.settingsCard} glass-card`}>

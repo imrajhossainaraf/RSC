@@ -160,6 +160,68 @@
   font-size: 0.95rem;
 }
 
+.descriptionBody {
+  color: #475569;
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+.descriptionBody p {
+  margin: 0 0 0.6em;
+}
+
+.descriptionBody p:last-child {
+  margin-bottom: 0;
+}
+
+.descriptionBody h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0.8em 0 0.4em;
+}
+
+.descriptionBody h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0.7em 0 0.35em;
+}
+
+.descriptionBody h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0.6em 0 0.3em;
+}
+
+.descriptionBody ul,
+.descriptionBody ol {
+  padding-left: 1.4em;
+  margin: 0.4em 0;
+}
+
+.descriptionBody li {
+  margin: 0.2em 0;
+}
+
+.descriptionBody strong {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.descriptionBody em {
+  font-style: italic;
+}
+
+.descriptionBody u {
+  text-decoration: underline;
+}
+
+.descriptionBody s {
+  text-decoration: line-through;
+}
+
 .actionsRow {
   display: flex;
   gap: 12px;

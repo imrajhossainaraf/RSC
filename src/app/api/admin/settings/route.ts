@@ -10,30 +10,58 @@ function isAdmin(session: Awaited<ReturnType<typeof getServerSession>>): boolean
   return (session as { user?: { role?: string } }).user?.role === "admin";
 }
 
-export async function GET(req: Request) {
+export async function GET() {
   const session = await getServerSession(authOptions);
   if (!isAdmin(session)) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
   await dbConnect();
-  const setting = await Settings.findOne({ key: "fromEmail" });
-  return NextResponse.json({ fromEmail: setting?.value ?? process.env.EMAIL_FROM ?? "" });
+  const settings = await Settings.find({ key: { $in: ["fromEmail", "shippingFeeInside", "shippingFeeOutside"] } });
+  const get = (key: string) => settings.find((s: { key: string; value: string }) => s.key === key)?.value;
+
+  return NextResponse.json({
+    fromEmail: get("fromEmail") ?? process.env.EMAIL_FROM ?? "",
+    shippingFeeInside: Number(get("shippingFeeInside") ?? 50),
+    shippingFeeOutside: Number(get("shippingFeeOutside") ?? 150),
+  });
 }
 
 export async function PUT(req: Request) {
   const session = await getServerSession(authOptions);
   if (!isAdmin(session)) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-  const { fromEmail } = (await req.json()) as { fromEmail?: string };
-  const email = fromEmail ? normalizeEmail(fromEmail) : "";
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json({ message: "Invalid email address." }, { status: 400 });
+  await dbConnect();
+  const body = (await req.json()) as {
+    fromEmail?: string;
+    shippingFeeInside?: number;
+    shippingFeeOutside?: number;
+  };
+
+  const updates: Promise<unknown>[] = [];
+
+  if (body.fromEmail !== undefined) {
+    const email = normalizeEmail(body.fromEmail);
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ message: "Invalid email address." }, { status: 400 });
+    }
+    updates.push(Settings.findOneAndUpdate({ key: "fromEmail" }, { value: email }, { upsert: true }));
   }
 
-  await dbConnect();
-  await Settings.findOneAndUpdate(
-    { key: "fromEmail" },
-    { value: email },
-    { upsert: true }
-  );
-  return NextResponse.json({ message: "From-email updated.", fromEmail: email });
+  if (body.shippingFeeInside !== undefined) {
+    const fee = Number(body.shippingFeeInside);
+    if (isNaN(fee) || fee < 0) {
+      return NextResponse.json({ message: "Invalid shipping fee for Inside Chottogram." }, { status: 400 });
+    }
+    updates.push(Settings.findOneAndUpdate({ key: "shippingFeeInside" }, { value: String(fee) }, { upsert: true }));
+  }
+
+  if (body.shippingFeeOutside !== undefined) {
+    const fee = Number(body.shippingFeeOutside);
+    if (isNaN(fee) || fee < 0) {
+      return NextResponse.json({ message: "Invalid shipping fee for Outside Chottogram." }, { status: 400 });
+    }
+    updates.push(Settings.findOneAndUpdate({ key: "shippingFeeOutside" }, { value: String(fee) }, { upsert: true }));
+  }
+
+  await Promise.all(updates);
+  return NextResponse.json({ message: "Settings saved successfully." });
 }

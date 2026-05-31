@@ -28,7 +28,8 @@ export async function generateMetadata(
     if (!product) return {};
     const price = (product.price - product.price * (product.discount / 100)).toFixed(2);
     const title = product.name;
-    const description = `${product.description.slice(0, 155)}…`;
+    const plainText = product.description.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    const description = `${plainText.slice(0, 155)}…`;
     return {
       title,
       description,
@@ -183,7 +184,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           
           <div className={styles.description}>
             <h3>Product Overview</h3>
-            <p>{product.description}</p>
+            <div className={styles.descriptionBody} dangerouslySetInnerHTML={{ __html: product.description }} />
           </div>
 
           <div className={styles.divider}></div>
