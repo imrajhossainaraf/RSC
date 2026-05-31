@@ -110,8 +110,8 @@ export default function ProfilePage() {
             <Image
               src={user.image}
               alt={user.name ?? 'Profile avatar'}
-              width={96}
-              height={96}
+              width={120}
+              height={120}
               className={styles.avatar}
               style={{ objectFit: 'cover' }}
             />
@@ -231,10 +231,10 @@ export default function ProfilePage() {
                                 <Image
                                   src={item.product?.image || item.productImage || '/images/placeholder.png'}
                                   alt={item.product?.name || item.productName || "Product"}
-                                  width={80}
-                                  height={80}
+                                  width={50}
+                                  height={50}
                                   className={styles.itemImage}
-                                  style={{ objectFit: 'cover' }}
+                                  style={{ objectFit: 'contain', flexShrink: 0 }}
                                 />
                               ) : (
                                 <div className={styles.itemImagePlaceholder}></div>

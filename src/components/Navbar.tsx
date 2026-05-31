@@ -11,6 +11,7 @@ import {
   UserCircleIcon,
   ArrowRightEndOnRectangleIcon,
   XMarkIcon,
+  PhoneIcon,
 } from "@heroicons/react/24/outline";
 import styles from "./Navbar.module.css";
 
@@ -147,6 +148,13 @@ export default function Navbar() {
               ? <XMarkIcon width={22} height={22} />
               : <MagnifyingGlassIcon width={22} height={22} />}
           </button>
+          <Link
+            href="/contact"
+            className={styles.mobileIconBtn}
+            aria-label="Contact"
+          >
+            <PhoneIcon width={22} height={22} />
+          </Link>
           <Link
             href={profileHref}
             className={`${styles.mobileIconBtn} ${session ? styles.mobileIconActive : ""}`}

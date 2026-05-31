@@ -17,7 +17,6 @@ const OrderSchema = new mongoose.Schema(
       phone: { type: String, required: true },
       address: { type: String, required: true },
       city: { type: String, required: true },
-      zipCode: { type: String, required: true },
     },
     items: [OrderItemSchema],
     total: { type: Number, required: true, min: 0 },

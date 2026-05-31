@@ -6,7 +6,15 @@ import { useCart } from '@/context/CartContext';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { TrashIcon } from '@heroicons/react/24/outline';
+import {
+  TrashIcon,
+  MapPinIcon,
+  TruckIcon,
+  LockClosedIcon,
+  ExclamationCircleIcon,
+  ShoppingBagIcon,
+} from '@heroicons/react/24/outline';
+import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { toast } from 'sonner';
 import styles from './page.module.css';
 
@@ -21,14 +29,74 @@ const DIVISIONS = [
   { name: 'Sylhet',     inside: false },
 ];
 
-const CTG_PATTERN = /\bctg\b|chittagong|chottogram|chattogram/i;
+// All 11 districts of Chattogram Division (with common alternate spellings)
+const CTG_DISTRICTS = [
+  'chittagong', 'chattogram', 'chottogram', 'ctg',
+  'bandarban',
+  'brahmanbaria', 'brahman baria', 'b baria',
+  'chandpur',
+  'comilla', 'cumilla',
+  "cox's bazar", 'coxs bazar', 'coxsbazar', 'cox bazar',
+  'feni',
+  'khagrachari', 'khagrachhari', 'khagra chari',
+  'lakshmipur', 'laksmipur', 'laxmipur',
+  'noakhali',
+  'rangamati', 'rangamathi',
+];
+
+function isCTGDistrict(text: string): boolean {
+  const lower = text.toLowerCase().trim();
+  return CTG_DISTRICTS.some(d => lower.includes(d));
+}
 
 function detectZone(division: string, address: string, city: string): 'inside' | 'outside' | null {
+  // City field is the highest-priority signal
+  if (city.trim()) {
+    if (isCTGDistrict(city)) return 'inside';
+    return 'outside'; // any filled, non-CTG city → outside
+  }
+  // Division dropdown is next
   if (division) {
     return DIVISIONS.find(d => d.name === division)?.inside ? 'inside' : 'outside';
   }
-  if (!address.trim() && !city.trim()) return null;
-  return CTG_PATTERN.test(address) || CTG_PATTERN.test(city) ? 'inside' : 'outside';
+  // Address text fallback
+  if (address.trim()) {
+    return /\bctg\b|chittagong|chottogram|chattogram/i.test(address) ? 'inside' : 'outside';
+  }
+  return null;
+}
+
+type FieldName = 'name' | 'email' | 'phone' | 'address' | 'city';
+
+function validatePhone(raw: string): boolean {
+  const s = raw.replace(/[\s\-\(\)]/g, '').replace(/^\+/, '');
+  const local = s.replace(/^(880|0088|88)/, '');
+  return /^01[3-9]\d{8}$/.test(local);
+}
+
+function getFieldError(field: FieldName, value: string): string {
+  const v = value.trim();
+  switch (field) {
+    case 'name':
+      if (!v) return 'Full name is required';
+      if (v.length < 2) return 'At least 2 characters required';
+      return '';
+    case 'email':
+      if (!v) return 'Email address is required';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'Enter a valid email address';
+      return '';
+    case 'phone':
+      if (!v) return 'Phone number is required';
+      if (!validatePhone(value)) return 'Enter a valid BD number (e.g. 01712345678)';
+      return '';
+    case 'address':
+      if (!v) return 'Delivery address is required';
+      if (v.length < 5) return 'Please enter a more specific address';
+      return '';
+    case 'city':
+      if (!v) return 'District is required';
+      return '';
+  }
 }
 
 export default function CartPage() {
@@ -37,17 +105,16 @@ export default function CartPage() {
   const router = useRouter();
 
   const [buyerDetails, setBuyerDetails] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    zipCode: ''
+    name: '', email: '', phone: '', address: '', city: '',
   });
   const [division, setDivision] = useState('');
+  const [touched, setTouched] = useState<Record<FieldName, boolean>>({
+    name: false, email: false, phone: false, address: false, city: false,
+  });
+  const [submitAttempted, setSubmitAttempted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
-  const [error, setError] = useState('');
+  const [serverError, setServerError] = useState('');
   const [shippingFees, setShippingFees] = useState({ inside: 50, outside: 150 });
 
   useEffect(() => {
@@ -57,63 +124,51 @@ export default function CartPage() {
       .catch(() => {});
   }, []);
 
-  const handleDivisionChange = (div: string) => {
-    setDivision(div);
-    if (div) {
-      setBuyerDetails(prev => ({ ...prev, city: prev.city || div }));
-    }
+  // Derive session prefills at render time — no useEffect/setState needed
+  const name  = buyerDetails.name  || (session?.user?.name  ?? '');
+  const email = buyerDetails.email || (session?.user?.email ?? '');
+
+  const handleDivisionChange = (div: string) => setDivision(div);
+
+  const handleCityChange = (city: string) => {
+    setBuyerDetails(p => ({ ...p, city }));
+    if (isCTGDistrict(city)) setDivision('Chattogram');
   };
 
   const shippingZone = detectZone(division, buyerDetails.address, buyerDetails.city);
   const shippingFee = shippingZone === 'inside' ? shippingFees.inside
-    : shippingZone === 'outside' ? shippingFees.outside
-    : 0;
+    : shippingZone === 'outside' ? shippingFees.outside : 0;
   const finalTotal = totalPrice + shippingFee;
 
-  const isBuyerComplete =
-    division !== '' &&
-    buyerDetails.name.trim() !== '' &&
-    buyerDetails.email.trim() !== '' &&
-    buyerDetails.phone.trim() !== '' &&
-    buyerDetails.address.trim() !== '' &&
-    buyerDetails.city.trim() !== '';
+  const fieldErrors: Record<FieldName, string> = {
+    name:    getFieldError('name',    name),
+    email:   getFieldError('email',   email),
+    phone:   getFieldError('phone',   buyerDetails.phone),
+    address: getFieldError('address', buyerDetails.address),
+    city:    getFieldError('city',    buyerDetails.city),
+  };
 
-  useEffect(() => {
-    if (session?.user) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setBuyerDetails((prev) => {
-        if (prev.name === '' && prev.email === '') {
-          return {
-            ...prev,
-            name: session.user?.name ?? '',
-            email: session.user?.email ?? '',
-          };
-        }
-        return prev;
-      });
-    }
-  }, [session]);
+  const allFieldsValid = Object.values(fieldErrors).every(e => e === '');
+  const isBuyerComplete = division !== '' && allFieldsValid;
 
-  const handleCheckout = async (e: React.FormEvent<HTMLFormElement>) => {
+  const shouldShowError = (f: FieldName) =>
+    (touched[f] || submitAttempted) && fieldErrors[f] !== '';
+  const isValid = (f: FieldName) =>
+    touched[f] && fieldErrors[f] === '';
+
+  const handleBlur = (f: FieldName) => setTouched(prev => ({ ...prev, [f]: true }));
+
+  const handleCheckout = async (e: { preventDefault(): void }) => {
     e.preventDefault();
+    setSubmitAttempted(true);
 
-    if (status === 'loading') {
-      setError('Checking login status, please wait...');
-      return;
-    }
-
-    if (status !== 'authenticated') {
-      router.push('/login');
-      return;
-    }
-
-    if (!isBuyerComplete) {
-      setError('Please complete all buyer and shipping details before placing your order.');
-      return;
-    }
+    if (status === 'loading') { setServerError('Checking login status, please wait...'); return; }
+    if (status !== 'authenticated') { router.push('/login'); return; }
+    if (!division) { setServerError('Please select your delivery division.'); return; }
+    if (!isBuyerComplete) { setServerError('Please fix the highlighted errors before placing your order.'); return; }
 
     setLoading(true);
-    setError('');
+    setServerError('');
 
     try {
       const res = await fetch('/api/orders', {
@@ -121,10 +176,10 @@ export default function CartPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: cart,
-          buyerDetails: { ...buyerDetails, division },
+          buyerDetails: { ...buyerDetails, name, email, division },
           shippingZone: shippingZone ?? 'outside',
           total: finalTotal,
-        })
+        }),
       });
 
       if (res.ok) {
@@ -132,14 +187,13 @@ export default function CartPage() {
         setOrderPlaced(true);
         toast.success('Order placed successfully!');
       } else {
-        const data = await res.json();
+        const data = await res.json() as { message?: string };
         toast.error(data.message || 'Failed to place order');
-        setError(data.message || 'Failed to place order');
+        setServerError(data.message || 'Failed to place order');
       }
-    } catch (fetchError) {
-      console.error('Checkout error:', fetchError);
+    } catch {
       toast.error('An error occurred during checkout');
-      setError('An error occurred during checkout');
+      setServerError('An error occurred during checkout');
     } finally {
       setLoading(false);
     }
@@ -148,8 +202,9 @@ export default function CartPage() {
   if (orderPlaced) {
     return (
       <div className={styles.emptyCart}>
+        <div className={styles.successIcon}>✓</div>
         <h2>Order Placed Successfully!</h2>
-        <p style={{ marginTop: '1rem' }}>Thank you for your purchase. You will receive an email confirmation shortly.</p>
+        <p>Thank you! Check your email for the confirmation.</p>
         <Link href="/products">
           <button className="btn-primary" style={{ marginTop: '2rem' }}>Continue Shopping</button>
         </Link>
@@ -160,8 +215,9 @@ export default function CartPage() {
   if (cart.length === 0) {
     return (
       <div className={styles.emptyCart}>
+        <ShoppingBagIcon width={48} height={48} style={{ color: '#94a3b8', margin: '0 auto 1rem' }} />
         <h2>Your cart is empty</h2>
-        <p style={{ marginTop: '1rem' }}>Looks like you haven&apos;t added any components yet.</p>
+        <p>Looks like you haven&apos;t added any components yet.</p>
         <Link href="/products">
           <button className="btn-primary" style={{ marginTop: '2rem' }}>Start Shopping</button>
         </Link>
@@ -174,148 +230,197 @@ export default function CartPage() {
       <h1 className={styles.cartHeader}>Your Cart</h1>
 
       <div className={styles.cartLayout}>
+
+        {/* ── Cart Items ── */}
         <div className={styles.cartItems}>
-          {cart.map((item) => (
+          {cart.map(item => (
             <div key={item.productId} className={styles.cartItem}>
               <Image
                 src={item.image}
                 alt={item.name}
-                width={96}
-                height={96}
-                sizes="96px"
-                style={{ objectFit: 'cover', borderRadius: '0.75rem' }}
+                width={80}
+                height={80}
+                sizes="80px"
                 className={styles.itemImage}
               />
-
               <div className={styles.itemInfo}>
                 <Link href={`/products/${item.productId}`} className={styles.itemName}>
                   {item.name}
                 </Link>
-                <div className={styles.itemPrice}>৳{item.price.toFixed(2)}</div>
-
+                <div className={styles.itemMeta}>
+                  <span className={styles.unitPrice}>৳{item.price.toFixed(2)} each</span>
+                  <span className={styles.itemTotal}>৳{(item.price * item.quantity).toFixed(2)}</span>
+                </div>
                 <div className={styles.quantityControl}>
-                  <button onClick={() => updateQuantity(item.productId, item.quantity - 1)}>-</button>
+                  <button onClick={() => updateQuantity(item.productId, item.quantity - 1)} aria-label="Decrease">−</button>
                   <span>{item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.productId, item.quantity + 1)}>+</button>
+                  <button onClick={() => updateQuantity(item.productId, item.quantity + 1)} aria-label="Increase">+</button>
                 </div>
               </div>
-
-              <button onClick={() => removeFromCart(item.productId)} className={styles.removeBtn} aria-label="Remove item">
-                <TrashIcon width={24} height={24} />
+              <button
+                onClick={() => removeFromCart(item.productId)}
+                className={styles.removeBtn}
+                aria-label="Remove item"
+              >
+                <TrashIcon width={18} height={18} />
               </button>
             </div>
           ))}
         </div>
 
-        <div className={styles.summary}>
-          <h2>Order Summary</h2>
+        {/* ── Order Summary ── */}
+        <aside className={styles.summary}>
 
-          {/* Division Dropdown */}
-          <div className={styles.divisionGroup}>
-            <label className={styles.divisionLabel}>Select Division <span style={{ color: '#ef4444' }}>*</span></label>
+          {/* Header */}
+          <div className={styles.summaryHeader}>
+            <span className={styles.summaryTitle}>Order Summary</span>
+            <span className={styles.itemBadge}>{cart.length} item{cart.length !== 1 ? 's' : ''}</span>
+          </div>
+
+          {/* Mini item list */}
+          <div className={styles.miniItems}>
+            {cart.map(item => (
+              <div key={item.productId} className={styles.miniItem}>
+                <span className={styles.miniName}>
+                  {item.name}
+                  <span className={styles.miniQty}> ×{item.quantity}</span>
+                </span>
+                <span className={styles.miniPrice}>৳{(item.price * item.quantity).toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Price rows */}
+          <div className={styles.priceSection}>
+            <div className={styles.priceRow}>
+              <span>Subtotal</span>
+              <span>৳{totalPrice.toFixed(2)}</span>
+            </div>
+            <div className={styles.priceRow}>
+              <span>
+                Shipping (COD)
+                {shippingZone && (
+                  <span className={`${styles.zonePill} ${shippingZone === 'inside' ? styles.zonePillInside : styles.zonePillOutside}`}>
+                    {shippingZone === 'inside' ? 'Inside CTG' : 'Outside CTG'}
+                  </span>
+                )}
+              </span>
+              <span className={shippingZone ? '' : styles.feeUnset}>
+                {shippingZone ? `৳${shippingFee.toFixed(2)}` : '—'}
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.totalRow}>
+            <span>Total</span>
+            <span className={styles.totalAmount}>৳{finalTotal.toFixed(2)}</span>
+          </div>
+
+          {/* COD label */}
+          <div className={styles.codLabel}>
+            <TruckIcon width={15} height={15} />
+            <span>Payment: Cash on Delivery</span>
+          </div>
+
+          {/* Delivery Location */}
+          <div className={styles.sectionBlock}>
+            <div className={styles.sectionTitle}>
+              <MapPinIcon width={14} height={14} />
+              Delivery Location <span className={styles.req}>*</span>
+            </div>
             <select
-              className={styles.divisionSelect}
+              className={`${styles.divSelect} ${!division && submitAttempted ? styles.divSelectError : division ? styles.divSelectFilled : ''}`}
               value={division}
               onChange={e => handleDivisionChange(e.target.value)}
-              required
             >
               <option value="">— Choose your division —</option>
               {DIVISIONS.map(d => (
                 <option key={d.name} value={d.name}>{d.name}</option>
               ))}
             </select>
+            {!division && submitAttempted && (
+              <p className={styles.fieldErr}>Please select your division</p>
+            )}
+
+            {shippingZone && (
+              <div className={`${styles.zoneStrip} ${shippingZone === 'inside' ? styles.zoneInside : styles.zoneOutside}`}>
+                <span>{shippingZone === 'inside' ? '📍 Inside Chattogram' : '🚚 Outside Chattogram'}</span>
+                <span className={styles.zoneFee}>৳{shippingFee}</span>
+              </div>
+            )}
           </div>
 
-          <div className={styles.summaryRow}>
-            <span>Subtotal</span>
-            <span>৳{totalPrice.toFixed(2)}</span>
-          </div>
-          <div className={styles.summaryRow}>
-            <span>
-              Shipping (COD)
-              {shippingZone && (
-                <span className={`${styles.zoneBadge} ${shippingZone === 'inside' ? styles.zoneBadgeInside : styles.zoneBadgeOutside}`}>
-                  {shippingZone === 'inside' ? 'Inside Chattogram' : 'Outside Chattogram'}
-                </span>
-              )}
-            </span>
-            <span>{shippingZone ? `৳${shippingFee.toFixed(2)}` : '—'}</span>
-          </div>
-          <div className={styles.summaryTotal}>
-            <span>Total</span>
-            <span>৳{finalTotal.toFixed(2)}</span>
-          </div>
-
-          {error && <div style={{ color: 'var(--accent)', fontSize: '0.9rem' }}>{error}</div>}
-
+          {/* Buyer form or login prompt */}
           {status === 'authenticated' ? (
-            <form onSubmit={handleCheckout} className={styles.shippingForm}>
-              <h3 style={{ fontSize: '1.1rem', marginTop: '1rem' }}>Buyer & Shipping Details</h3>
-              <div className={styles.formGroup}>
-                <label>Full Name</label>
-                <input
-                  required
-                  type="text"
-                  value={buyerDetails.name}
-                  onChange={e => setBuyerDetails({ ...buyerDetails, name: e.target.value })}
-                  placeholder="John Doe"
-                />
+            <form onSubmit={handleCheckout} noValidate className={styles.buyerForm}>
+              <div className={styles.sectionTitle} style={{ marginBottom: '0.75rem' }}>
+                Customer Details
               </div>
-              <div className={styles.formGroup}>
-                <label>Email Address</label>
-                <input
-                  required
-                  type="email"
-                  value={buyerDetails.email}
-                  onChange={e => setBuyerDetails({ ...buyerDetails, email: e.target.value })}
-                  placeholder="name@example.com"
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Phone Number</label>
-                <input
-                  required
-                  type="tel"
-                  value={buyerDetails.phone}
-                  onChange={e => setBuyerDetails({ ...buyerDetails, phone: e.target.value })}
-                  placeholder="+1234567890"
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Address</label>
-                <input
-                  required
-                  type="text"
-                  value={buyerDetails.address}
-                  onChange={e => setBuyerDetails({ ...buyerDetails, address: e.target.value })}
-                  placeholder="123 Main St"
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label>City</label>
-                <input
-                  required
-                  type="text"
-                  value={buyerDetails.city}
-                  onChange={e => setBuyerDetails({ ...buyerDetails, city: e.target.value })}
-                  placeholder="Chattogram"
-                />
-              </div>
+
+              {(
+                [
+                  { key: 'name',    label: 'Full Name',         type: 'text',  placeholder: 'Your full name',      autocomplete: 'name' },
+                  { key: 'email',   label: 'Email Address',     type: 'email', placeholder: 'name@example.com',    autocomplete: 'email' },
+                  { key: 'phone',   label: 'Phone Number',      type: 'tel',   placeholder: '01712 345 678',       autocomplete: 'tel' },
+                  { key: 'address', label: 'Delivery Address',  type: 'text',  placeholder: 'House / Road / Area', autocomplete: 'street-address' },
+                  { key: 'city',    label: 'District',           type: 'text',  placeholder: 'e.g. Feni, Comilla, Dhaka…', autocomplete: 'address-level2' },
+                ] as const
+              ).map(({ key, label, type, placeholder, autocomplete }) => (
+                <div key={key} className={styles.field}>
+                  <label className={styles.fieldLabel}>
+                    {label} <span className={styles.req}>*</span>
+                  </label>
+                  <div className={`${styles.inputRow} ${shouldShowError(key) ? styles.inputRowErr : isValid(key) ? styles.inputRowOk : ''}`}>
+                    <input
+                      type={type}
+                      value={key === 'name' ? name : key === 'email' ? email : buyerDetails[key]}
+                      onChange={e =>
+                        key === 'city'
+                          ? handleCityChange(e.target.value)
+                          : setBuyerDetails(p => ({ ...p, [key]: e.target.value }))
+                      }
+                      onBlur={() => handleBlur(key)}
+                      placeholder={placeholder}
+                      autoComplete={autocomplete}
+                    />
+                    {touched[key] && (
+                      isValid(key)
+                        ? <CheckCircleIcon width={16} height={16} className={styles.iconOk} />
+                        : <ExclamationCircleIcon width={16} height={16} className={styles.iconErr} />
+                    )}
+                  </div>
+                  {shouldShowError(key) && (
+                    <p className={styles.fieldErr}>{fieldErrors[key]}</p>
+                  )}
+                </div>
+              ))}
+
+              {serverError && (
+                <div className={styles.serverError}>
+                  <ExclamationCircleIcon width={15} height={15} />
+                  {serverError}
+                </div>
+              )}
 
               <button
                 type="submit"
-                className={`btn-primary ${styles.checkoutBtn}`}
-                disabled={loading || !isBuyerComplete}
+                className={styles.placeOrderBtn}
+                disabled={loading}
               >
-                {loading ? 'Processing...' : 'Place Order'}
+                <LockClosedIcon width={15} height={15} />
+                {loading ? 'Processing…' : 'Place Order'}
               </button>
             </form>
           ) : (
-            <Link href="/login?callbackUrl=/cart">
-              <button className={`btn-primary ${styles.checkoutBtn}`}>Login to Checkout</button>
-            </Link>
+            <div className={styles.loginBlock}>
+              <p>Sign in to complete your purchase</p>
+              <Link href="/login?callbackUrl=/cart" className={styles.placeOrderBtn} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+                <LockClosedIcon width={15} height={15} />
+                Login to Checkout
+              </Link>
+            </div>
           )}
-        </div>
+        </aside>
       </div>
     </div>
   );

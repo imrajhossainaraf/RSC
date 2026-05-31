@@ -7,6 +7,9 @@ import {
   ShareIcon,
   ShoppingCartIcon,
   HeartIcon,
+  EnvelopeIcon,
+  MapPinIcon,
+  GlobeAltIcon,
 } from "@heroicons/react/24/outline";
 import styles from "./Footer.module.css";
 
@@ -20,6 +23,13 @@ const shopLinks = [
 const companyLinks = [
   { label: "Share & Careers", href: "/admin",   icon: ShareIcon },
   { label: "Contact Us",      href: "/contact", icon: PhoneIcon },
+];
+
+const contactLinks = [
+  { label: "Dewanhat, Chittagong 4100", href: "https://maps.google.com/?q=Dewanhat+Chittagong", icon: MapPinIcon, external: true },
+  { label: "+880 1870-643378", href: "https://wa.me/8801870643378", icon: PhoneIcon, external: true },
+  { label: "roboticsshopctg@gmail.com", href: "mailto:roboticsshopctg@gmail.com", icon: EnvelopeIcon, external: false },
+  { label: "Facebook Page", href: "https://www.facebook.com/profile.php?id=61585433094374", icon: GlobeAltIcon, external: true },
 ];
 
 export default function Footer() {
@@ -72,6 +82,25 @@ export default function Footer() {
                 <Link
                   href={href}
                   className={`${styles.footerLink} ${label === "Share & Careers" ? styles.highlightLink : ""}`}
+                >
+                  <Icon width={15} height={15} className={styles.linkIcon} />
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Contact */}
+        <div className={styles.linkGroup}>
+          <h4 className={styles.groupTitle}>Contact</h4>
+          <ul className={styles.linkList}>
+            {contactLinks.map(({ label, href, icon: Icon, external }) => (
+              <li key={label}>
+                <Link
+                  href={href}
+                  className={styles.footerLink}
+                  {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                 >
                   <Icon width={15} height={15} className={styles.linkIcon} />
                   {label}

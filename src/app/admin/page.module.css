@@ -977,6 +977,180 @@
 .orderStatusSelect[data-status="completed"] { color: #065f46; background: #d1fae5; border-color: #a7f3d0; }
 .orderStatusSelect[data-status="cancelled"] { color: #991b1b; background: #fee2e2; border-color: #fecaca; }
 
+/* Order accordion cards */
+.orderList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.orderCard {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.orderCardExpanded {
+  border-color: var(--primary-glow);
+}
+
+.orderCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.01);
+  user-select: none;
+  flex-wrap: wrap;
+}
+
+.orderCardHeader:hover {
+  background: rgba(124, 58, 237, 0.03);
+}
+
+.orderCardBody {
+  border-top: 1px solid var(--border);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: #fafafa;
+}
+
+.orderDetailsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.orderSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.orderSectionTitle {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+
+.orderDetailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.87rem;
+  min-height: 22px;
+}
+
+.orderDetailLabel {
+  color: #64748b;
+  font-weight: 500;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.orderDetailValue {
+  color: #1e293b;
+  font-weight: 550;
+  text-align: right;
+}
+
+.orderDetailMono {
+  font-family: monospace;
+  font-size: 0.72rem;
+  color: #64748b;
+  word-break: break-all;
+  text-align: right;
+}
+
+.zoneBadgeInside {
+  font-size: 0.72rem;
+  font-weight: 650;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(16, 185, 129, 0.08);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.zoneBadgeOutside {
+  font-size: 0.72rem;
+  font-weight: 650;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(249, 115, 22, 0.08);
+  color: var(--orange);
+  border: 1px solid rgba(249, 115, 22, 0.15);
+}
+
+.orderItemsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.orderItemsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.87rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.orderItemsTable th {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.025);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.orderItemsTable tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  color: #1e293b;
+}
+
+.orderItemsTable tfoot td {
+  padding: 8px 12px;
+  color: #64748b;
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+.orderTotalRow td {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.95rem;
+  border-top: 2px solid var(--border) !important;
+  background: rgba(124, 58, 237, 0.03);
+}
+
+.expandIcon {
+  margin-left: auto;
+  color: #94a3b8;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+
+.expandIconOpen {
+  transform: rotate(180deg);
+}
+
 .paginationRow {
   display: flex;
   align-items: center;
@@ -1237,6 +1411,15 @@
   .paginationRow {
     gap: 0.75rem;
     padding-top: 1rem;
+  }
+
+  .orderCardBody {
+    padding: 14px;
+  }
+
+  .orderDetailsGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   /* ── Form actions: stack on very small ── */

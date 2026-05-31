@@ -7,8 +7,8 @@
 
 .inner {
   display: grid;
-  grid-template-columns: 1.8fr 1fr 1fr;
-  gap: 3rem;
+  grid-template-columns: 1.6fr 1fr 1fr 1fr;
+  gap: 2.5rem;
   padding-bottom: 2.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -146,6 +146,10 @@
   }
 
   .brand {
+    grid-column: 1 / -1;
+  }
+
+  .linkGroup:last-child {
     grid-column: 1 / -1;
   }
 

@@ -24,6 +24,7 @@ import {
   Cog6ToothIcon,
   EnvelopeIcon,
   ShieldCheckIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 
 type Category = {
@@ -97,9 +98,9 @@ export default function AdminPage() {
   const [deleteCategoryConfirm, setDeleteCategoryConfirm] = useState<string | null>(null);
 
   // Orders Tab State
-  type OrderBuyer = { name: string; email: string; phone: string; address: string; city: string; zipCode: string };
+  type OrderBuyer = { name: string; email: string; phone: string; address: string; city: string };
   type OrderItem = { productName: string; quantity: number; priceAtPurchase: number };
-  type AdminOrder = { _id: string; buyerDetails?: OrderBuyer; items: OrderItem[]; total: number; status: string; createdAt: string };
+  type AdminOrder = { _id: string; buyerDetails?: OrderBuyer; items: OrderItem[]; total: number; shippingFee: number; shippingZone: string; status: string; createdAt: string };
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [ordersTotal, setOrdersTotal] = useState(0);
   const [ordersPage, setOrdersPage] = useState(1);
@@ -107,6 +108,7 @@ export default function AdminPage() {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [orderStatusFilter, setOrderStatusFilter] = useState("");
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
   // Settings Tab State
   type AdminUser = { _id: string; name: string; email: string };
@@ -961,12 +963,12 @@ export default function AdminPage() {
                         <tr key={p._id}>
                           <td>
                             <div className={styles.tableThumb}>
-                              <Image 
-                                src={p.image} 
-                                alt={p.name} 
-                                width={40} 
-                                height={40} 
-                                style={{ objectFit: "contain" }}
+                              <Image
+                                src={p.image}
+                                alt={p.name}
+                                width={36}
+                                height={36}
+                                style={{ objectFit: "contain", flexShrink: 0 }}
                                 unoptimized
                               />
                             </div>
@@ -1176,7 +1178,12 @@ export default function AdminPage() {
         <div className={styles.tabContent}>
           <div className={`${styles.listingSection} glass-card`}>
             <div className={styles.searchRow}>
-              <h3>All Orders</h3>
+              <h3>
+                All Orders{" "}
+                <span className={styles.grayText} style={{ fontSize: "0.9rem", fontWeight: 400 }}>
+                  ({ordersTotal})
+                </span>
+              </h3>
               <div className={styles.filtersWrapper}>
                 <select
                   value={orderStatusFilter}
@@ -1199,57 +1206,148 @@ export default function AdminPage() {
             ) : orders.length === 0 ? (
               <div className={styles.emptyTable}><p>No orders found.</p></div>
             ) : (
-              <div className={styles.tableContainer}>
-                <table className={styles.adminTable}>
-                  <thead>
-                    <tr>
-                      <th>Order ID</th>
-                      <th>Customer</th>
-                      <th>Items</th>
-                      <th>Total</th>
-                      <th>Date</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orders.map(o => (
-                      <tr key={o._id}>
-                        <td>
-                          <span className={styles.orderIdCell} title={o._id}>
-                            #{o._id.slice(-8).toUpperCase()}
-                          </span>
-                        </td>
-                        <td>
-                          <div className={styles.orderCustomerCell}>
-                            <span className={styles.alertItemName}>{o.buyerDetails?.name ?? "—"}</span>
-                            <span className={styles.adminRowEmail}>{o.buyerDetails?.email ?? "—"}</span>
+              <div className={styles.orderList}>
+                {orders.map(o => {
+                  const isExpanded = expandedOrderId === o._id;
+                  const subtotal = o.items.reduce((s, i) => s + i.priceAtPurchase * i.quantity, 0);
+
+                  return (
+                    <div key={o._id} className={`${styles.orderCard} ${isExpanded ? styles.orderCardExpanded : ""}`}>
+                      {/* Clickable summary row */}
+                      <div
+                        className={styles.orderCardHeader}
+                        onClick={() => setExpandedOrderId(isExpanded ? null : o._id)}
+                        role="button"
+                        aria-expanded={isExpanded}
+                      >
+                        <span className={styles.orderIdCell}>#{o._id.slice(-8).toUpperCase()}</span>
+                        <div className={styles.orderCustomerCell}>
+                          <span className={styles.alertItemName}>{o.buyerDetails?.name ?? "—"}</span>
+                          <span className={styles.adminRowEmail}>{o.buyerDetails?.phone ?? "—"}</span>
+                        </div>
+                        <span className={styles.tableCatBadge}>
+                          {o.items.length} item{o.items.length !== 1 ? "s" : ""}
+                        </span>
+                        <span className={styles.currentPrice}>৳{o.total.toFixed(2)}</span>
+                        <span className={styles.grayText} style={{ fontSize: "0.82rem", whiteSpace: "nowrap" }}>
+                          {new Date(o.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                        </span>
+                        <select
+                          value={o.status}
+                          disabled={updatingOrderId === o._id}
+                          onChange={e => updateOrderStatus(o._id, e.target.value)}
+                          className={styles.orderStatusSelect}
+                          data-status={o.status}
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="processing">Processing</option>
+                          <option value="completed">Completed</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                        <ChevronDownIcon
+                          width={16}
+                          height={16}
+                          className={`${styles.expandIcon} ${isExpanded ? styles.expandIconOpen : ""}`}
+                        />
+                      </div>
+
+                      {/* Expanded detail body */}
+                      {isExpanded && (
+                        <div className={styles.orderCardBody}>
+                          <div className={styles.orderDetailsGrid}>
+                            {/* Customer details */}
+                            <div className={styles.orderSection}>
+                              <h4 className={styles.orderSectionTitle}>Customer Details</h4>
+                              {(
+                                [
+                                  ["Name",     o.buyerDetails?.name],
+                                  ["Email",    o.buyerDetails?.email],
+                                  ["Phone",    o.buyerDetails?.phone],
+                                  ["Address",  o.buyerDetails?.address],
+                                  ["District", o.buyerDetails?.city],
+                                ] as [string, string | undefined][]
+                              ).map(([label, value]) => (
+                                <div key={label} className={styles.orderDetailRow}>
+                                  <span className={styles.orderDetailLabel}>{label}</span>
+                                  <span className={styles.orderDetailValue}>{value ?? "—"}</span>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Shipping & meta */}
+                            <div className={styles.orderSection}>
+                              <h4 className={styles.orderSectionTitle}>Delivery & Payment</h4>
+                              <div className={styles.orderDetailRow}>
+                                <span className={styles.orderDetailLabel}>Zone</span>
+                                <span className={o.shippingZone === "inside" ? styles.zoneBadgeInside : styles.zoneBadgeOutside}>
+                                  {o.shippingZone === "inside" ? "Inside CTG" : "Outside CTG"}
+                                </span>
+                              </div>
+                              <div className={styles.orderDetailRow}>
+                                <span className={styles.orderDetailLabel}>Shipping Fee</span>
+                                <span className={styles.orderDetailValue}>৳{(o.shippingFee ?? 0).toFixed(2)}</span>
+                              </div>
+                              <div className={styles.orderDetailRow}>
+                                <span className={styles.orderDetailLabel}>Payment</span>
+                                <span className={styles.orderDetailValue}>Cash on Delivery</span>
+                              </div>
+                              <div className={styles.orderDetailRow}>
+                                <span className={styles.orderDetailLabel}>Date</span>
+                                <span className={styles.orderDetailValue}>
+                                  {new Date(o.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })}
+                                </span>
+                              </div>
+                              <div className={styles.orderDetailRow}>
+                                <span className={styles.orderDetailLabel}>Order ID</span>
+                                <span className={styles.orderDetailMono}>{o._id}</span>
+                              </div>
+                            </div>
                           </div>
-                        </td>
-                        <td>
-                          <span className={styles.tableCatBadge}>{o.items.length} item{o.items.length !== 1 ? "s" : ""}</span>
-                        </td>
-                        <td><span className={styles.currentPrice}>৳{o.total.toFixed(2)}</span></td>
-                        <td className={styles.grayText} style={{ fontSize: "0.82rem" }}>
-                          {new Date(o.createdAt).toLocaleDateString()}
-                        </td>
-                        <td>
-                          <select
-                            value={o.status}
-                            disabled={updatingOrderId === o._id}
-                            onChange={e => updateOrderStatus(o._id, e.target.value)}
-                            className={styles.orderStatusSelect}
-                            data-status={o.status}
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="processing">Processing</option>
-                            <option value="completed">Completed</option>
-                            <option value="cancelled">Cancelled</option>
-                          </select>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+
+                          {/* Items table */}
+                          <div className={styles.orderItemsSection}>
+                            <h4 className={styles.orderSectionTitle}>Ordered Items</h4>
+                            <table className={styles.orderItemsTable}>
+                              <thead>
+                                <tr>
+                                  <th>Product</th>
+                                  <th>Qty</th>
+                                  <th>Unit Price</th>
+                                  <th>Line Total</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {o.items.map((item, idx) => (
+                                  <tr key={idx}>
+                                    <td>{item.productName}</td>
+                                    <td>{item.quantity}</td>
+                                    <td>৳{item.priceAtPurchase.toFixed(2)}</td>
+                                    <td>৳{(item.priceAtPurchase * item.quantity).toFixed(2)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                              <tfoot>
+                                <tr>
+                                  <td colSpan={3} className={styles.orderDetailLabel}>Items Subtotal</td>
+                                  <td>৳{subtotal.toFixed(2)}</td>
+                                </tr>
+                                <tr>
+                                  <td colSpan={3} className={styles.orderDetailLabel}>Shipping</td>
+                                  <td>৳{(o.shippingFee ?? 0).toFixed(2)}</td>
+                                </tr>
+                                <tr className={styles.orderTotalRow}>
+                                  <td colSpan={3}>Grand Total</td>
+                                  <td>৳{o.total.toFixed(2)}</td>
+                                </tr>
+                              </tfoot>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
 
