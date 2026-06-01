@@ -63,6 +63,7 @@ export default function Navbar() {
     }
   };
 
+  const isProductsPage = pathname === "/products";
   const profileHref = session ? "/profile" : `/login?callbackUrl=${encodeURIComponent(pathname)}`;
 
   return (
@@ -87,8 +88,8 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* Desktop search bar */}
-        <form className={styles.searchContainer} onSubmit={handleSearch}>
+        {/* Desktop search bar — hidden on /products where the page has its own search */}
+        {!isProductsPage && <form className={styles.searchContainer} onSubmit={handleSearch}>
           <div className={styles.searchWrapper}>
             <input
               type="text"
@@ -101,7 +102,7 @@ export default function Navbar() {
               <MagnifyingGlassIcon width={20} height={20} />
             </button>
           </div>
-        </form>
+        </form>}
 
         {/* Desktop right nav */}
         <div className={styles.rightNav}>
@@ -139,15 +140,17 @@ export default function Navbar() {
 
         {/* Mobile action icons */}
         <div className={styles.mobileActions}>
-          <button
-            className={styles.mobileIconBtn}
-            onClick={() => setMobileSearchOpen((o) => !o)}
-            aria-label="Search"
-          >
-            {mobileSearchOpen
-              ? <XMarkIcon width={22} height={22} />
-              : <MagnifyingGlassIcon width={22} height={22} />}
-          </button>
+          {!isProductsPage && (
+            <button
+              className={styles.mobileIconBtn}
+              onClick={() => setMobileSearchOpen((o) => !o)}
+              aria-label="Search"
+            >
+              {mobileSearchOpen
+                ? <XMarkIcon width={22} height={22} />
+                : <MagnifyingGlassIcon width={22} height={22} />}
+            </button>
+          )}
           <Link
             href="/contact"
             className={styles.mobileIconBtn}
@@ -168,7 +171,7 @@ export default function Navbar() {
       </header>
 
       {/* Mobile search drawer — rendered outside the header so it slides below it */}
-      {mobileSearchOpen && (
+      {mobileSearchOpen && !isProductsPage && (
         <div className={styles.mobileSearchDrawer}>
           <form onSubmit={handleSearch} className={styles.mobileSearchForm}>
             <div className={styles.searchWrapper}>
