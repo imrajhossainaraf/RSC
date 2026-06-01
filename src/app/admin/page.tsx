@@ -1654,119 +1654,122 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* ── Coupons Tab ── */}
-          {activeTab === "coupons" && (
-            <div className={styles.settingsGrid}>
+        </div>
+      )}
 
-              {/* Create coupons card */}
-              <div className={`${styles.settingsCard} glass-card`}>
-                <div className={styles.settingsCardHeader}>
-                  <TagIcon width={22} height={22} />
-                  <h3>Create Coupon Codes</h3>
-                </div>
-                <p className={styles.settingsCardDesc}>
-                  Enter one or more codes (comma or newline separated). All codes in a batch share the same discount percentage.
-                </p>
+      {/* ── Coupons Tab ── */}
+      {activeTab === "coupons" && (
+        <div className={styles.tabContent}>
+          <div className={styles.settingsGrid}>
 
-                {couponMessage.text && (
-                  <div className={`${styles.alert} ${couponMessage.isError ? styles.alertError : styles.alertSuccess}`} style={{ marginBottom: "1rem" }}>
-                    {couponMessage.isError ? <ExclamationTriangleIcon width={18} height={18} /> : <CheckIcon width={18} height={18} />}
-                    <span>{couponMessage.text}</span>
-                    <button onClick={() => setCouponMessage({ text: "", isError: false })} className={styles.alertClose}>
-                      <XMarkIcon width={14} height={14} />
-                    </button>
-                  </div>
-                )}
+            {/* Create coupons card */}
+            <div className={`${styles.settingsCard} glass-card`}>
+              <div className={styles.settingsCardHeader}>
+                <TagIcon width={22} height={22} />
+                <h3>Create Coupon Codes</h3>
+              </div>
+              <p className={styles.settingsCardDesc}>
+                Enter one or more codes (comma or newline separated). All codes in a batch share the same discount percentage.
+              </p>
 
-                <form onSubmit={handleCreateCoupons} className={styles.settingsForm}>
-                  <div className={styles.formGroup}>
-                    <label>Discount Percentage *</label>
-                    <input
-                      required
-                      type="number"
-                      min={1}
-                      max={100}
-                      value={couponDiscountInput}
-                      onChange={e => setCouponDiscountInput(e.target.value)}
-                      placeholder="e.g. 15"
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label>Coupon Codes * <span style={{ fontWeight: 400, color: "#94a3b8" }}>(one per line or comma-separated)</span></label>
-                    <textarea
-                      required
-                      rows={4}
-                      value={couponCodesInput}
-                      onChange={e => setCouponCodesInput(e.target.value.toUpperCase())}
-                      placeholder={"SUMMER20\nWELCOME10\nFLASH50"}
-                      style={{ resize: "vertical", fontFamily: "monospace", letterSpacing: "0.04em" }}
-                    />
-                  </div>
-                  <button type="submit" className="btn-primary" disabled={couponCreateLoading}>
-                    {couponCreateLoading ? "Creating…" : "Create Coupons"}
+              {couponMessage.text && (
+                <div className={`${styles.alert} ${couponMessage.isError ? styles.alertError : styles.alertSuccess}`} style={{ marginBottom: "1rem" }}>
+                  {couponMessage.isError ? <ExclamationTriangleIcon width={18} height={18} /> : <CheckIcon width={18} height={18} />}
+                  <span>{couponMessage.text}</span>
+                  <button onClick={() => setCouponMessage({ text: "", isError: false })} className={styles.alertClose}>
+                    <XMarkIcon width={14} height={14} />
                   </button>
-                </form>
-              </div>
-
-              {/* Coupon list card */}
-              <div className={`${styles.settingsCard} glass-card`}>
-                <div className={styles.settingsCardHeader}>
-                  <TagIcon width={22} height={22} />
-                  <h3>All Coupons</h3>
                 </div>
+              )}
 
-                {couponsLoading ? (
-                  <p style={{ color: "#94a3b8", fontSize: "0.9rem" }}>Loading…</p>
-                ) : coupons.length === 0 ? (
-                  <p style={{ color: "#94a3b8", fontSize: "0.9rem" }}>No coupons yet.</p>
-                ) : (
-                  <table className={styles.adminTable} style={{ marginTop: "0.5rem" }}>
-                    <thead>
-                      <tr>
-                        <th>Code</th>
-                        <th>Discount</th>
-                        <th>Used</th>
-                        <th>Status</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {coupons.map(c => (
-                        <tr key={c._id}>
-                          <td><code style={{ letterSpacing: "0.05em", fontWeight: 700 }}>{c.code}</code></td>
-                          <td>{c.discountPercent}%</td>
-                          <td>{c.usedBy.length}</td>
-                          <td>
-                            <button
-                              onClick={() => handleToggleCoupon(c._id, !c.isActive)}
-                              className={c.isActive ? styles.badgeHigh : styles.badgeZero}
-                              style={{ border: "none", cursor: "pointer", borderRadius: "999px", padding: "2px 10px", fontSize: "0.75rem", fontWeight: 700 }}
-                              title={c.isActive ? "Click to deactivate" : "Click to activate"}
-                            >
-                              {c.isActive ? "Active" : "Inactive"}
-                            </button>
-                          </td>
-                          <td>
-                            {deleteCouponConfirm === c._id ? (
-                              <div className={styles.confirmDeleteWrapper}>
-                                <button onClick={() => handleDeleteCoupon(c._id)} className={styles.deleteConfirmBtn}>Yes</button>
-                                <button onClick={() => setDeleteCouponConfirm(null)} className={styles.deleteCancelBtn}>No</button>
-                              </div>
-                            ) : (
-                              <button onClick={() => setDeleteCouponConfirm(c._id)} className={styles.deleteBtn} title="Delete coupon">
-                                <TrashIcon width={15} height={15} />
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
+              <form onSubmit={handleCreateCoupons} className={styles.settingsForm}>
+                <div className={styles.formGroup}>
+                  <label>Discount Percentage *</label>
+                  <input
+                    required
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={couponDiscountInput}
+                    onChange={e => setCouponDiscountInput(e.target.value)}
+                    placeholder="e.g. 15"
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Coupon Codes * <span style={{ fontWeight: 400, color: "#94a3b8" }}>(one per line or comma-separated)</span></label>
+                  <textarea
+                    required
+                    rows={4}
+                    value={couponCodesInput}
+                    onChange={e => setCouponCodesInput(e.target.value.toUpperCase())}
+                    placeholder={"SUMMER20\nWELCOME10\nFLASH50"}
+                    style={{ resize: "vertical", fontFamily: "monospace", letterSpacing: "0.04em" }}
+                  />
+                </div>
+                <button type="submit" className="btn-primary" disabled={couponCreateLoading}>
+                  {couponCreateLoading ? "Creating…" : "Create Coupons"}
+                </button>
+              </form>
+            </div>
+
+            {/* Coupon list card */}
+            <div className={`${styles.settingsCard} glass-card`}>
+              <div className={styles.settingsCardHeader}>
+                <TagIcon width={22} height={22} />
+                <h3>All Coupons</h3>
               </div>
 
+              {couponsLoading ? (
+                <p style={{ color: "#94a3b8", fontSize: "0.9rem" }}>Loading…</p>
+              ) : coupons.length === 0 ? (
+                <p style={{ color: "#94a3b8", fontSize: "0.9rem" }}>No coupons yet.</p>
+              ) : (
+                <table className={styles.adminTable} style={{ marginTop: "0.5rem" }}>
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Discount</th>
+                      <th>Used</th>
+                      <th>Status</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {coupons.map(c => (
+                      <tr key={c._id}>
+                        <td><code style={{ letterSpacing: "0.05em", fontWeight: 700 }}>{c.code}</code></td>
+                        <td>{c.discountPercent}%</td>
+                        <td>{c.usedBy.length}</td>
+                        <td>
+                          <button
+                            onClick={() => handleToggleCoupon(c._id, !c.isActive)}
+                            className={c.isActive ? styles.badgeHigh : styles.badgeZero}
+                            style={{ border: "none", cursor: "pointer", borderRadius: "999px", padding: "2px 10px", fontSize: "0.75rem", fontWeight: 700 }}
+                            title={c.isActive ? "Click to deactivate" : "Click to activate"}
+                          >
+                            {c.isActive ? "Active" : "Inactive"}
+                          </button>
+                        </td>
+                        <td>
+                          {deleteCouponConfirm === c._id ? (
+                            <div className={styles.confirmDeleteWrapper}>
+                              <button onClick={() => handleDeleteCoupon(c._id)} className={styles.deleteConfirmBtn}>Yes</button>
+                              <button onClick={() => setDeleteCouponConfirm(null)} className={styles.deleteCancelBtn}>No</button>
+                            </div>
+                          ) : (
+                            <button onClick={() => setDeleteCouponConfirm(c._id)} className={styles.deleteBtn} title="Delete coupon">
+                              <TrashIcon width={15} height={15} />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
-          )}
+
+          </div>
         </div>
       )}
 
