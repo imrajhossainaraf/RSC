@@ -6,6 +6,7 @@ import Order from "@/models/Order";
 import Product from "@/models/Product";
 import Settings from "@/models/Settings";
 import User from "@/models/User";
+import Coupon from "@/models/Coupon";
 import { sendMail } from "@/lib/mailer";
 import { isValidObjectId, sanitizeString } from "@/lib/validation";
 
@@ -30,6 +31,11 @@ type ProductDoc = {
 };
 
 export async function POST(req: Request) {
+  // Tracked outside the try block so the catch can roll back an atomic coupon claim
+  // if stock deduction or Order.create fails after the claim is made.
+  let claimedCouponId: unknown = null;
+  let claimingUserId: string | undefined;
+
   try {
     const session = await getServerSession(authOptions);
     const sessionUser = session?.user as { id?: string; role?: string; email?: string } | undefined;
@@ -40,7 +46,7 @@ export async function POST(req: Request) {
 
     if (!isValidObjectId(sessionUser.id) && sessionUser.email) {
       await dbConnect();
-      const existingUser = await User.findOne({ email: sessionUser.email });
+      const existingUser = await User.findOne({ email: sessionUser.email }).select("_id");
       if (existingUser) sessionUser.id = existingUser._id.toString();
     }
 
@@ -48,10 +54,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+    claimingUserId = sessionUser.id;
+
     const payload = (await req.json()) as Record<string, unknown>;
     const items = Array.isArray(payload.items) ? (payload.items as OrderItemPayload[]) : [];
     const buyerDetails = (payload.buyerDetails as BuyerDetailsPayload | undefined) ?? {};
     const shippingZone = payload.shippingZone === "outside" ? "outside" : "inside";
+    const couponCodeRaw = typeof payload.couponCode === "string"
+      ? sanitizeString(payload.couponCode).toUpperCase()
+      : "";
 
     if (!items.length) {
       return NextResponse.json({ message: "Cart is empty." }, { status: 400 });
@@ -77,7 +88,7 @@ export async function POST(req: Request) {
 
     await dbConnect();
 
-    // Fetch products and validate stock — total is recalculated server-side
+    // 1. Fetch products and validate stock — no writes yet
     const productsToUpdate: Array<{ product: ProductDoc; quantity: number }> = [];
 
     for (const item of items) {
@@ -97,13 +108,7 @@ export async function POST(req: Request) {
       productsToUpdate.push({ product, quantity: item.quantity });
     }
 
-    // Deduct stock
-    for (const { product, quantity } of productsToUpdate) {
-      product.stock -= quantity;
-      await product.save();
-    }
-
-    // Build order items with server-side prices
+    // 2. Build order items and calculate totals — no writes yet
     const orderItems = productsToUpdate.map(({ product, quantity }) => {
       const effectivePrice = product.price - (product.price * (product.discount / 100));
       return {
@@ -115,18 +120,50 @@ export async function POST(req: Request) {
       };
     });
 
-    // Fetch shipping fee server-side based on zone
     const feeSettings = await Settings.find({ key: { $in: ["shippingFeeInside", "shippingFeeOutside"] } });
     const feeInside = Number(feeSettings.find((s: { key: string; value: string }) => s.key === "shippingFeeInside")?.value ?? 50);
     const feeOutside = Number(feeSettings.find((s: { key: string; value: string }) => s.key === "shippingFeeOutside")?.value ?? 150);
     const shippingFee = shippingZone === "outside" ? feeOutside : feeInside;
 
-    // Calculate total server-side — never trust client total
     const itemsTotal = parseFloat(
       orderItems.reduce((sum, i) => sum + i.priceAtPurchase * i.quantity, 0).toFixed(2)
     );
-    const serverTotal = parseFloat((itemsTotal + shippingFee).toFixed(2));
 
+    // 3. Atomically claim the coupon BEFORE touching stock.
+    //    Uses findOneAndUpdate with $addToSet so the check+mark is a single DB operation,
+    //    eliminating the TOCTOU window between reading usedBy and writing it.
+    //    claimedCouponId is set so the catch block can roll back on later failures.
+    let couponDiscount = 0;
+    let appliedCouponCode = "";
+    if (couponCodeRaw) {
+      const claimed = await Coupon.findOneAndUpdate(
+        { code: couponCodeRaw, isActive: true, usedBy: { $ne: sessionUser.id } },
+        { $addToSet: { usedBy: sessionUser.id } },
+        { new: true }
+      ) as { _id: unknown; discountPercent: number } | null;
+
+      if (!claimed) {
+        // Distinguish error messages without a separate query when possible
+        const existing = await Coupon.findOne({ code: couponCodeRaw }).select("isActive") as { isActive: boolean } | null;
+        if (!existing) return NextResponse.json({ message: "Coupon code not found." }, { status: 400 });
+        if (!existing.isActive) return NextResponse.json({ message: "This coupon is no longer active." }, { status: 400 });
+        return NextResponse.json({ message: "You have already used this coupon." }, { status: 400 });
+      }
+
+      claimedCouponId = claimed._id;
+      couponDiscount = parseFloat((itemsTotal * (claimed.discountPercent / 100)).toFixed(2));
+      appliedCouponCode = couponCodeRaw;
+    }
+
+    const serverTotal = parseFloat((itemsTotal - couponDiscount + shippingFee).toFixed(2));
+
+    // 4. Deduct stock — coupon already validated above
+    for (const { product, quantity } of productsToUpdate) {
+      product.stock -= quantity;
+      await product.save();
+    }
+
+    // 5. Create order
     const order = await Order.create({
       user: sessionUser.id,
       buyerDetails: { name: buyerName, email: buyerEmail, phone: buyerPhone, address, city },
@@ -134,17 +171,27 @@ export async function POST(req: Request) {
       total: serverTotal,
       shippingFee,
       shippingZone,
+      couponCode: appliedCouponCode,
+      couponDiscount,
     });
+
+    // Order succeeded — disable the coupon rollback
+    claimedCouponId = null;
 
     // Send order confirmation to customer (non-blocking)
     sendMail({
       to: buyerEmail,
       subject: `Order Confirmed — Robotics Shop CTG (#${order._id})`,
-      html: buildConfirmationEmail(buyerName, order._id.toString(), orderItems, itemsTotal, shippingFee, shippingZone),
+      html: buildConfirmationEmail(buyerName, order._id.toString(), orderItems, itemsTotal, shippingFee, shippingZone, couponDiscount, appliedCouponCode),
     }).catch((err) => console.warn("Order confirmation email failed:", err));
 
     return NextResponse.json({ message: "Order placed successfully.", orderId: order._id }, { status: 201 });
   } catch (error) {
+    // Roll back the atomic coupon claim so the user can retry with the same coupon
+    if (claimedCouponId && claimingUserId) {
+      await Coupon.findByIdAndUpdate(claimedCouponId, { $pull: { usedBy: claimingUserId } })
+        .catch(e => console.error("Coupon rollback failed:", e));
+    }
     console.error("Error creating order:", error);
     return NextResponse.json({ message: "An error occurred while placing the order." }, { status: 500 });
   }
@@ -191,8 +238,10 @@ function buildConfirmationEmail(
   subtotal: number,
   shippingFee: number,
   shippingZone: string,
+  couponDiscount = 0,
+  couponCode = "",
 ): string {
-  const total = subtotal + shippingFee;
+  const total = subtotal - couponDiscount + shippingFee;
   const rows = items
     .map(
       (i) => `<tr>
@@ -224,6 +273,10 @@ function buildConfirmationEmail(
           </thead>
           <tbody>${rows}</tbody>
           <tfoot>
+            ${couponDiscount > 0 ? `<tr>
+              <td colspan="3" style="padding:10px;border:1px solid #e2e8f0;text-align:right;color:#15803d;">Coupon Discount (${couponCode})</td>
+              <td style="padding:10px;border:1px solid #e2e8f0;text-align:right;color:#15803d;">−৳${couponDiscount.toFixed(2)}</td>
+            </tr>` : ""}
             <tr>
               <td colspan="3" style="padding:10px;border:1px solid #e2e8f0;text-align:right;">Shipping (COD — ${shippingZone === "outside" ? "Outside Chottogram" : "Inside Chottogram"})</td>
               <td style="padding:10px;border:1px solid #e2e8f0;text-align:right;">৳${shippingFee.toFixed(2)}</td>

@@ -54,7 +54,7 @@ export default function AdminPage() {
   const isAdmin = status === "authenticated" && sessionUser?.role === "admin";
 
   // Navigation Tabs for Admin Panel
-  const [activeTab, setActiveTab] = useState<"dashboard" | "products" | "categories" | "orders" | "settings">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "products" | "categories" | "orders" | "coupons" | "settings">("dashboard");
 
   // Loaded Data
   const [products, setProducts] = useState<Product[]>([]);
@@ -130,6 +130,16 @@ export default function AdminPage() {
   const [addAdminLoading, setAddAdminLoading] = useState(false);
   const [addAdminMessage, setAddAdminMessage] = useState({ text: "", isError: false });
   const [removeAdminConfirm, setRemoveAdminConfirm] = useState<string | null>(null);
+
+  // Coupons Tab State
+  type CouponDoc = { _id: string; code: string; discountPercent: number; isActive: boolean; usedBy: string[] };
+  const [coupons, setCoupons] = useState<CouponDoc[]>([]);
+  const [couponsLoading, setCouponsLoading] = useState(false);
+  const [couponCodesInput, setCouponCodesInput] = useState("");
+  const [couponDiscountInput, setCouponDiscountInput] = useState("10");
+  const [couponCreateLoading, setCouponCreateLoading] = useState(false);
+  const [couponMessage, setCouponMessage] = useState({ text: "", isError: false });
+  const [deleteCouponConfirm, setDeleteCouponConfirm] = useState<string | null>(null);
 
   const [refreshTick, setRefreshTick] = useState(0);
 
@@ -227,6 +237,92 @@ export default function AdminPage() {
       .finally(() => { if (!cancelled) setAdminsLoading(false); });
     return () => { cancelled = true; };
   }, [isAdmin, activeTab]);
+
+  useEffect(() => {
+    if (!isAdmin || activeTab !== "coupons") return;
+    let cancelled = false;
+    Promise.resolve()
+      .then(() => { if (!cancelled) setCouponsLoading(true); })
+      .then(() => fetch("/api/admin/coupons").then(r => r.json() as Promise<CouponDoc[]>))
+      .then(data => { if (!cancelled && Array.isArray(data)) setCoupons(data); })
+      .catch(err => console.error("Failed to load coupons:", err))
+      .finally(() => { if (!cancelled) setCouponsLoading(false); });
+    return () => { cancelled = true; };
+  }, [isAdmin, activeTab]);
+
+  const handleCreateCoupons = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const discount = Number(couponDiscountInput);
+    if (!discount || discount < 1 || discount > 100) {
+      setCouponMessage({ text: "Discount must be between 1 and 100.", isError: true });
+      return;
+    }
+    const codes = couponCodesInput
+      .split(/[\n,]+/)
+      .map(c => c.trim().toUpperCase())
+      .filter(Boolean);
+    if (codes.length === 0) {
+      setCouponMessage({ text: "Enter at least one coupon code.", isError: true });
+      return;
+    }
+    setCouponCreateLoading(true);
+    setCouponMessage({ text: "", isError: false });
+    try {
+      const res = await fetch("/api/admin/coupons", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ codes, discountPercent: discount }),
+      });
+      const data = await res.json() as { created?: number; message?: string };
+      if (res.ok || res.status === 409) {
+        if (res.ok) setCouponCodesInput("");
+        const createdCount = data.created ?? 0;
+        const createdText = createdCount > 0 ? `${createdCount} coupon${createdCount !== 1 ? "s" : ""} created. ` : "";
+        setCouponMessage({ text: `${createdText}${data.message ?? ""}`.trim() || "Done.", isError: false });
+        // Refresh list to reflect any newly inserted codes
+        fetch("/api/admin/coupons")
+          .then(r => r.json() as Promise<CouponDoc[]>)
+          .then(d => { if (Array.isArray(d)) setCoupons(d); })
+          .catch(() => {});
+      } else {
+        setCouponMessage({ text: data.message || "Failed to create coupons.", isError: true });
+      }
+    } catch {
+      setCouponMessage({ text: "Network error.", isError: true });
+    } finally {
+      setCouponCreateLoading(false);
+    }
+  };
+
+  const handleDeleteCoupon = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/coupons/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setCoupons(prev => prev.filter(c => c._id !== id));
+        setDeleteCouponConfirm(null);
+      } else {
+        const data = await res.json() as { message?: string };
+        alert(data.message || "Failed to delete coupon.");
+      }
+    } catch {
+      alert("Network error while deleting coupon.");
+    }
+  };
+
+  const handleToggleCoupon = async (id: string, isActive: boolean) => {
+    try {
+      const res = await fetch(`/api/admin/coupons/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive }),
+      });
+      if (res.ok) {
+        setCoupons(prev => prev.map(c => c._id === id ? { ...c, isActive } : c));
+      }
+    } catch {
+      console.error("Failed to toggle coupon.");
+    }
+  };
 
   const handleFromEmailSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -680,6 +776,14 @@ export default function AdminPage() {
           <ClipboardDocumentListIcon width={18} height={18} />
           Orders
           {ordersTotal > 0 && <span className={styles.tabBadge}>{ordersTotal}</span>}
+        </button>
+        <button
+          className={`${styles.tabBtn} ${activeTab === "coupons" ? styles.activeTab : ""}`}
+          onClick={() => setActiveTab("coupons")}
+        >
+          <TagIcon width={18} height={18} />
+          Coupons
+          {coupons.length > 0 && <span className={styles.tabBadge}>{coupons.length}</span>}
         </button>
         <button
           className={`${styles.tabBtn} ${activeTab === "settings" ? styles.activeTab : ""}`}
@@ -1544,6 +1648,120 @@ export default function AdminPage() {
                       </div>
                     ))}
                   </div>
+                )}
+              </div>
+
+            </div>
+          )}
+
+          {/* ── Coupons Tab ── */}
+          {activeTab === "coupons" && (
+            <div className={styles.settingsGrid}>
+
+              {/* Create coupons card */}
+              <div className={`${styles.settingsCard} glass-card`}>
+                <div className={styles.settingsCardHeader}>
+                  <TagIcon width={22} height={22} />
+                  <h3>Create Coupon Codes</h3>
+                </div>
+                <p className={styles.settingsCardDesc}>
+                  Enter one or more codes (comma or newline separated). All codes in a batch share the same discount percentage.
+                </p>
+
+                {couponMessage.text && (
+                  <div className={`${styles.alert} ${couponMessage.isError ? styles.alertError : styles.alertSuccess}`} style={{ marginBottom: "1rem" }}>
+                    {couponMessage.isError ? <ExclamationTriangleIcon width={18} height={18} /> : <CheckIcon width={18} height={18} />}
+                    <span>{couponMessage.text}</span>
+                    <button onClick={() => setCouponMessage({ text: "", isError: false })} className={styles.alertClose}>
+                      <XMarkIcon width={14} height={14} />
+                    </button>
+                  </div>
+                )}
+
+                <form onSubmit={handleCreateCoupons} className={styles.settingsForm}>
+                  <div className={styles.formGroup}>
+                    <label>Discount Percentage *</label>
+                    <input
+                      required
+                      type="number"
+                      min={1}
+                      max={100}
+                      value={couponDiscountInput}
+                      onChange={e => setCouponDiscountInput(e.target.value)}
+                      placeholder="e.g. 15"
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>Coupon Codes * <span style={{ fontWeight: 400, color: "#94a3b8" }}>(one per line or comma-separated)</span></label>
+                    <textarea
+                      required
+                      rows={4}
+                      value={couponCodesInput}
+                      onChange={e => setCouponCodesInput(e.target.value.toUpperCase())}
+                      placeholder={"SUMMER20\nWELCOME10\nFLASH50"}
+                      style={{ resize: "vertical", fontFamily: "monospace", letterSpacing: "0.04em" }}
+                    />
+                  </div>
+                  <button type="submit" className="btn-primary" disabled={couponCreateLoading}>
+                    {couponCreateLoading ? "Creating…" : "Create Coupons"}
+                  </button>
+                </form>
+              </div>
+
+              {/* Coupon list card */}
+              <div className={`${styles.settingsCard} glass-card`}>
+                <div className={styles.settingsCardHeader}>
+                  <TagIcon width={22} height={22} />
+                  <h3>All Coupons</h3>
+                </div>
+
+                {couponsLoading ? (
+                  <p style={{ color: "#94a3b8", fontSize: "0.9rem" }}>Loading…</p>
+                ) : coupons.length === 0 ? (
+                  <p style={{ color: "#94a3b8", fontSize: "0.9rem" }}>No coupons yet.</p>
+                ) : (
+                  <table className={styles.adminTable} style={{ marginTop: "0.5rem" }}>
+                    <thead>
+                      <tr>
+                        <th>Code</th>
+                        <th>Discount</th>
+                        <th>Used</th>
+                        <th>Status</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {coupons.map(c => (
+                        <tr key={c._id}>
+                          <td><code style={{ letterSpacing: "0.05em", fontWeight: 700 }}>{c.code}</code></td>
+                          <td>{c.discountPercent}%</td>
+                          <td>{c.usedBy.length}</td>
+                          <td>
+                            <button
+                              onClick={() => handleToggleCoupon(c._id, !c.isActive)}
+                              className={c.isActive ? styles.badgeHigh : styles.badgeZero}
+                              style={{ border: "none", cursor: "pointer", borderRadius: "999px", padding: "2px 10px", fontSize: "0.75rem", fontWeight: 700 }}
+                              title={c.isActive ? "Click to deactivate" : "Click to activate"}
+                            >
+                              {c.isActive ? "Active" : "Inactive"}
+                            </button>
+                          </td>
+                          <td>
+                            {deleteCouponConfirm === c._id ? (
+                              <div className={styles.confirmDeleteWrapper}>
+                                <button onClick={() => handleDeleteCoupon(c._id)} className={styles.deleteConfirmBtn}>Yes</button>
+                                <button onClick={() => setDeleteCouponConfirm(null)} className={styles.deleteCancelBtn}>No</button>
+                              </div>
+                            ) : (
+                              <button onClick={() => setDeleteCouponConfirm(c._id)} className={styles.deleteBtn} title="Delete coupon">
+                                <TrashIcon width={15} height={15} />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 )}
               </div>
 

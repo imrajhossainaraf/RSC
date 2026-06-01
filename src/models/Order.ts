@@ -22,6 +22,8 @@ const OrderSchema = new mongoose.Schema(
     total: { type: Number, required: true, min: 0 },
     shippingFee: { type: Number, required: true, min: 0, default: 0 },
     shippingZone: { type: String, enum: ['inside', 'outside'], required: true, default: 'inside' },
+    couponCode: { type: String, default: '' },
+    couponDiscount: { type: Number, default: 0, min: 0 },
     status: {
       type: String,
       enum: ['pending', 'processing', 'completed', 'cancelled'],

@@ -13,6 +13,7 @@ import {
   LockClosedIcon,
   ExclamationCircleIcon,
   ShoppingBagIcon,
+  TagIcon,
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { toast } from 'sonner';
@@ -117,6 +118,11 @@ export default function CartPage() {
   const [serverError, setServerError] = useState('');
   const [shippingFees, setShippingFees] = useState({ inside: 50, outside: 150 });
 
+  const [couponInput, setCouponInput] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountPercent: number } | null>(null);
+
   useEffect(() => {
     fetch('/api/shipping-fees')
       .then(r => r.json() as Promise<{ inside: number; outside: number }>)
@@ -138,7 +144,36 @@ export default function CartPage() {
   const shippingZone = detectZone(division, buyerDetails.address, buyerDetails.city);
   const shippingFee = shippingZone === 'inside' ? shippingFees.inside
     : shippingZone === 'outside' ? shippingFees.outside : 0;
-  const finalTotal = totalPrice + shippingFee;
+  const couponDiscount = appliedCoupon
+    ? parseFloat((totalPrice * (appliedCoupon.discountPercent / 100)).toFixed(2))
+    : 0;
+  const finalTotal = totalPrice - couponDiscount + shippingFee;
+
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) { setCouponError('Please enter a coupon code.'); return; }
+    setCouponLoading(true);
+    setCouponError('');
+    try {
+      const res = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json() as { valid?: boolean; discountPercent?: number; code?: string; message?: string };
+      if (res.ok && data.valid) {
+        setAppliedCoupon({ code: data.code!, discountPercent: data.discountPercent! });
+        setCouponInput('');
+        toast.success(`Coupon applied — ${data.discountPercent}% off!`);
+      } else {
+        setCouponError(data.message || 'Invalid coupon.');
+      }
+    } catch {
+      setCouponError('Could not apply coupon. Try again.');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
 
   const fieldErrors: Record<FieldName, string> = {
     name:    getFieldError('name',    name),
@@ -179,6 +214,7 @@ export default function CartPage() {
           buyerDetails: { ...buyerDetails, name, email, division },
           shippingZone: shippingZone ?? 'outside',
           total: finalTotal,
+          couponCode: appliedCoupon?.code ?? '',
         }),
       });
 
@@ -296,6 +332,20 @@ export default function CartPage() {
               <span>Subtotal</span>
               <span>৳{totalPrice.toFixed(2)}</span>
             </div>
+            {couponDiscount > 0 && (
+              <div className={`${styles.priceRow} ${styles.discountRow}`}>
+                <span>
+                  <TagIcon width={13} height={13} />
+                  Coupon ({appliedCoupon!.code})
+                  <button
+                    className={styles.removeCouponBtn}
+                    onClick={() => setAppliedCoupon(null)}
+                    title="Remove coupon"
+                  >×</button>
+                </span>
+                <span className={styles.discountAmount}>−৳{couponDiscount.toFixed(2)}</span>
+              </div>
+            )}
             <div className={styles.priceRow}>
               <span>
                 Shipping (COD)
@@ -310,6 +360,35 @@ export default function CartPage() {
               </span>
             </div>
           </div>
+
+          {/* Coupon input — only shown to logged-in users */}
+          {status === 'authenticated' && !appliedCoupon && (
+            <div className={styles.sectionBlock}>
+              <div className={styles.sectionTitle}>
+                <TagIcon width={14} height={14} />
+                Coupon Code
+              </div>
+              <div className={styles.couponRow}>
+                <input
+                  className={styles.couponInput}
+                  type="text"
+                  value={couponInput}
+                  onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError(''); }}
+                  onKeyDown={e => e.key === 'Enter' && handleApplyCoupon()}
+                  placeholder="Enter code"
+                  maxLength={32}
+                />
+                <button
+                  className={styles.couponApplyBtn}
+                  onClick={handleApplyCoupon}
+                  disabled={couponLoading}
+                >
+                  {couponLoading ? '…' : 'Apply'}
+                </button>
+              </div>
+              {couponError && <p className={styles.fieldErr}>{couponError}</p>}
+            </div>
+          )}
 
           <div className={styles.totalRow}>
             <span>Total</span>
