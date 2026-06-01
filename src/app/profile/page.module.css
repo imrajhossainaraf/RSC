@@ -375,6 +375,42 @@
   font-size: 1rem;
 }
 
+.priceSummary {
+  margin-top: 1rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.priceSummaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.priceSummaryDiscount {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.priceSummaryNoCoupon {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.priceSummaryTotal {
+  border-top: 1px solid var(--border);
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
 /* Blank/Empty Dashboard UX states */
 .emptyOrders {
   text-align: center;

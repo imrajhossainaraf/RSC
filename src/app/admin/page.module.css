@@ -1140,6 +1140,24 @@
   background: rgba(124, 58, 237, 0.03);
 }
 
+.orderCouponRow td {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.couponAppliedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #dcfce7;
+  color: #15803d;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+}
+
 .expandIcon {
   margin-left: auto;
   color: #94a3b8;

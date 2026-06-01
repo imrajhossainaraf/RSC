@@ -33,6 +33,9 @@ type Order = {
   _id: string;
   items: OrderItem[];
   total: number;
+  shippingFee?: number;
+  couponCode?: string;
+  couponDiscount?: number;
   status: "pending" | "processing" | "completed" | "cancelled";
   buyerDetails: {
     name: string;
@@ -250,6 +253,33 @@ export default function ProfilePage() {
                               </span>
                             </div>
                           ))}
+                        </div>
+
+                        <div className={styles.priceSummary}>
+                          <div className={styles.priceSummaryRow}>
+                            <span>Items Subtotal</span>
+                            <span>৳{order.items.reduce((s, i) => s + i.priceAtPurchase * i.quantity, 0).toFixed(2)}</span>
+                          </div>
+                          {(order.couponDiscount ?? 0) > 0 && (
+                            <div className={`${styles.priceSummaryRow} ${styles.priceSummaryDiscount}`}>
+                              <span>Coupon <strong>{order.couponCode}</strong></span>
+                              <span>−৳{order.couponDiscount!.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {!(order.couponDiscount ?? 0) && (
+                            <div className={`${styles.priceSummaryRow} ${styles.priceSummaryNoCoupon}`}>
+                              <span>Coupon</span>
+                              <span>Not used</span>
+                            </div>
+                          )}
+                          <div className={styles.priceSummaryRow}>
+                            <span>Shipping</span>
+                            <span>৳{(order.shippingFee ?? 0).toFixed(2)}</span>
+                          </div>
+                          <div className={`${styles.priceSummaryRow} ${styles.priceSummaryTotal}`}>
+                            <span>Total</span>
+                            <span>৳{order.total.toFixed(2)}</span>
+                          </div>
                         </div>
                       </div>
                     </div>

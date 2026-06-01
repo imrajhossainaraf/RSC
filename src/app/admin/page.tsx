@@ -100,7 +100,7 @@ export default function AdminPage() {
   // Orders Tab State
   type OrderBuyer = { name: string; email: string; phone: string; address: string; city: string };
   type OrderItem = { productName: string; quantity: number; priceAtPurchase: number };
-  type AdminOrder = { _id: string; buyerDetails?: OrderBuyer; items: OrderItem[]; total: number; shippingFee: number; shippingZone: string; status: string; createdAt: string };
+  type AdminOrder = { _id: string; buyerDetails?: OrderBuyer; items: OrderItem[]; total: number; shippingFee: number; shippingZone: string; couponCode?: string; couponDiscount?: number; status: string; createdAt: string };
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [ordersTotal, setOrdersTotal] = useState(0);
   const [ordersPage, setOrdersPage] = useState(1);
@@ -1393,6 +1393,16 @@ export default function AdminPage() {
                                 <span className={styles.orderDetailValue}>৳{(o.shippingFee ?? 0).toFixed(2)}</span>
                               </div>
                               <div className={styles.orderDetailRow}>
+                                <span className={styles.orderDetailLabel}>Coupon</span>
+                                {o.couponCode ? (
+                                  <span className={styles.couponAppliedBadge}>
+                                    {o.couponCode} &mdash; −৳{(o.couponDiscount ?? 0).toFixed(2)}
+                                  </span>
+                                ) : (
+                                  <span className={styles.orderDetailValue}>None</span>
+                                )}
+                              </div>
+                              <div className={styles.orderDetailRow}>
                                 <span className={styles.orderDetailLabel}>Payment</span>
                                 <span className={styles.orderDetailValue}>Cash on Delivery</span>
                               </div>
@@ -1436,6 +1446,14 @@ export default function AdminPage() {
                                   <td colSpan={3} className={styles.orderDetailLabel}>Items Subtotal</td>
                                   <td>৳{subtotal.toFixed(2)}</td>
                                 </tr>
+                                {(o.couponDiscount ?? 0) > 0 && (
+                                  <tr className={styles.orderCouponRow}>
+                                    <td colSpan={3} className={styles.orderDetailLabel}>
+                                      Coupon ({o.couponCode})
+                                    </td>
+                                    <td>−৳{(o.couponDiscount ?? 0).toFixed(2)}</td>
+                                  </tr>
+                                )}
                                 <tr>
                                   <td colSpan={3} className={styles.orderDetailLabel}>Shipping</td>
                                   <td>৳{(o.shippingFee ?? 0).toFixed(2)}</td>
