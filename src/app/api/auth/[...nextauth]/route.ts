@@ -18,6 +18,7 @@ type AuthUser = {
 type AuthToken = {
   role?: string;
   id?: string;
+  roleCheckedAt?: number;
 } & Record<string, unknown>;
 
 const authProviders = [
@@ -99,48 +100,44 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user, account }) {
       const typedToken = token as AuthToken;
+
+      // On sign-in: seed id; for credentials also seed role as starting point
       if (user) {
         const typedUser = user as AuthUser;
         typedToken.id = typedUser.id ?? typedToken.id;
-
-        if (account?.type === "oauth") {
-          // OAuth providers don't supply a role — fetch it from DB so grants take effect
-          try {
-            await dbConnect();
-            const dbUser = await User.findOne({ email: String(typedToken.email) });
-            if (dbUser) {
-              typedToken.role = dbUser.role;
-              typedToken.id = dbUser._id.toString();
-            } else {
-              typedToken.role = "user";
-            }
-          } catch {
-            typedToken.role = "user";
-          }
-        } else {
-          // Credentials: role comes directly from authorize()
+        if (account?.type !== "oauth") {
           typedToken.role = typedUser.role ?? typedToken.role ?? "user";
         }
       }
 
-      // ADMIN_EMAILS env var always takes precedence (overrides DB role too)
+      // ADMIN_EMAILS env var always takes precedence — no DB check needed
       if (typedToken.email) {
         const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map((e) => e.trim().toLowerCase());
         if (adminEmails.includes(String(typedToken.email).toLowerCase())) {
           typedToken.role = "admin";
+          return typedToken;
         }
       }
 
-      // Ensure credentials users also get their MongoDB id in the token
-      if (!isValidObjectId(typedToken.id) && typedToken.email) {
+      // Re-sync role from DB on sign-in or every 5 minutes so permission changes
+      // (grants and revocations) take effect without requiring a sign-out.
+      const now = Math.floor(Date.now() / 1000);
+      if (user || now - (typedToken.roleCheckedAt ?? 0) > 300) {
         try {
           await dbConnect();
-          const existing = await User.findOne({ email: String(typedToken.email) });
-          if (existing) typedToken.id = existing._id.toString();
+          const dbUser = await User.findOne({ email: String(typedToken.email) }).select("role _id");
+          if (dbUser) {
+            typedToken.role = dbUser.role;
+            if (!isValidObjectId(typedToken.id)) typedToken.id = dbUser._id.toString();
+          } else {
+            typedToken.role = "user";
+          }
         } catch {
-          // don't fail auth flow for lookup errors; token.id may remain unset
+          // keep existing role on DB error — don't break the auth flow
         }
+        typedToken.roleCheckedAt = now;
       }
+
       return typedToken;
     },
     async session({ session, token }) {

@@ -10,7 +10,7 @@ function isAdmin(session: Awaited<ReturnType<typeof getServerSession>>): boolean
   return (session as { user?: { role?: string } }).user?.role === "admin";
 }
 
-export async function GET(req: Request) {
+export async function GET() {
   const session = await getServerSession(authOptions);
   if (!isAdmin(session)) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 

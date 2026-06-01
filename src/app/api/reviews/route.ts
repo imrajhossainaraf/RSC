@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
     const reviews = await Review.find({ product: productId }).sort({ createdAt: -1 }).lean();
     return NextResponse.json(reviews);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }
