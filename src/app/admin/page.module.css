@@ -1205,6 +1205,12 @@
   gap: 1rem;
 }
 
+.couponTableWrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 0.5rem;
+}
+
 .adminsList {
   border-top: 1px solid var(--border);
   padding-top: 1.25rem;
@@ -1420,6 +1426,13 @@
   .orderDetailsGrid {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  /* ── Coupon table: tighter cells so 5 columns fit ── */
+  .couponTableWrap .adminTable th,
+  .couponTableWrap .adminTable td {
+    padding: 10px 8px;
+    font-size: 0.82rem;
   }
 
   /* ── Form actions: stack on very small ── */

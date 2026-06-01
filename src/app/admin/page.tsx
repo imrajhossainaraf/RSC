@@ -1724,48 +1724,50 @@ export default function AdminPage() {
               ) : coupons.length === 0 ? (
                 <p style={{ color: "#94a3b8", fontSize: "0.9rem" }}>No coupons yet.</p>
               ) : (
-                <table className={styles.adminTable} style={{ marginTop: "0.5rem" }}>
-                  <thead>
-                    <tr>
-                      <th>Code</th>
-                      <th>Discount</th>
-                      <th>Used</th>
-                      <th>Status</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {coupons.map(c => (
-                      <tr key={c._id}>
-                        <td><code style={{ letterSpacing: "0.05em", fontWeight: 700 }}>{c.code}</code></td>
-                        <td>{c.discountPercent}%</td>
-                        <td>{c.usedBy.length}</td>
-                        <td>
-                          <button
-                            onClick={() => handleToggleCoupon(c._id, !c.isActive)}
-                            className={c.isActive ? styles.badgeHigh : styles.badgeZero}
-                            style={{ border: "none", cursor: "pointer", borderRadius: "999px", padding: "2px 10px", fontSize: "0.75rem", fontWeight: 700 }}
-                            title={c.isActive ? "Click to deactivate" : "Click to activate"}
-                          >
-                            {c.isActive ? "Active" : "Inactive"}
-                          </button>
-                        </td>
-                        <td>
-                          {deleteCouponConfirm === c._id ? (
-                            <div className={styles.confirmDeleteWrapper}>
-                              <button onClick={() => handleDeleteCoupon(c._id)} className={styles.deleteConfirmBtn}>Yes</button>
-                              <button onClick={() => setDeleteCouponConfirm(null)} className={styles.deleteCancelBtn}>No</button>
-                            </div>
-                          ) : (
-                            <button onClick={() => setDeleteCouponConfirm(c._id)} className={styles.deleteBtn} title="Delete coupon">
-                              <TrashIcon width={15} height={15} />
-                            </button>
-                          )}
-                        </td>
+                <div className={styles.couponTableWrap}>
+                  <table className={styles.adminTable}>
+                    <thead>
+                      <tr>
+                        <th>Code</th>
+                        <th>Discount</th>
+                        <th>Used</th>
+                        <th>Status</th>
+                        <th></th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {coupons.map(c => (
+                        <tr key={c._id}>
+                          <td><code style={{ letterSpacing: "0.05em", fontWeight: 700 }}>{c.code}</code></td>
+                          <td>{c.discountPercent}%</td>
+                          <td>{c.usedBy.length}</td>
+                          <td>
+                            <button
+                              onClick={() => handleToggleCoupon(c._id, !c.isActive)}
+                              className={c.isActive ? styles.badgeHigh : styles.badgeZero}
+                              style={{ border: "none", cursor: "pointer", borderRadius: "999px", padding: "2px 10px", fontSize: "0.75rem", fontWeight: 700 }}
+                              title={c.isActive ? "Click to deactivate" : "Click to activate"}
+                            >
+                              {c.isActive ? "Active" : "Inactive"}
+                            </button>
+                          </td>
+                          <td>
+                            {deleteCouponConfirm === c._id ? (
+                              <div className={styles.confirmDeleteWrapper}>
+                                <button onClick={() => handleDeleteCoupon(c._id)} className={styles.deleteConfirmBtn}>Yes</button>
+                                <button onClick={() => setDeleteCouponConfirm(null)} className={styles.deleteCancelBtn}>No</button>
+                              </div>
+                            ) : (
+                              <button onClick={() => setDeleteCouponConfirm(c._id)} className={styles.deleteBtn} title="Delete coupon">
+                                <TrashIcon width={15} height={15} />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
 
